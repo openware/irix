@@ -9,3 +9,6 @@ steps:
       GO111MODULE: on
     commands:
       - ./run_tests.sh
+
+trigger:
+  event: [ push ]
