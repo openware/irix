@@ -13,10 +13,10 @@ import (
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/order"
-	"github.com/openware/irix/orderbook"
+	"github.com/openware/pkg/order"
+	"github.com/openware/pkg/orderbook"
 	"github.com/openware/irix/stream"
-	"github.com/openware/irix/trade"
+	"github.com/openware/pkg/trade"
 )
 
 const (

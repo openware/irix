@@ -9,21 +9,21 @@ import (
 	"time"
 
 	"github.com/openware/pkg/common"
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
-	"github.com/openware/tradepoint/portfolio/withdraw"
+	"github.com/openware/irix/portfolio/withdraw"
 	exchange "github.com/openware/irix"
-	"github.com/openware/irix/account"
+	"github.com/openware/pkg/account"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/kline"
-	"github.com/openware/irix/order"
-	"github.com/openware/irix/orderbook"
+	"github.com/openware/pkg/kline"
+	"github.com/openware/pkg/order"
+	"github.com/openware/pkg/orderbook"
 	"github.com/openware/irix/protocol"
 	"github.com/openware/pkg/request"
 	"github.com/openware/irix/stream"
 	"github.com/openware/irix/ticker"
-	"github.com/openware/irix/trade"
+	"github.com/openware/pkg/trade"
 )
 
 // GetDefaultConfig returns a default exchange config

@@ -2,7 +2,7 @@ package huobi
 
 import (
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 type errorCapture struct {

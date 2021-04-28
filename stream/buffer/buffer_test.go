@@ -8,7 +8,7 @@ import (
 
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/orderbook"
+	"github.com/openware/pkg/orderbook"
 )
 
 var itemArray = [][]orderbook.Item{

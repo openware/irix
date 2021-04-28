@@ -1,4 +1,4 @@
-package exchange
+package irix
 
 import (
 	"errors"
@@ -11,12 +11,12 @@ import (
 
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
-	"github.com/openware/tradepoint/portfolio/banking"
+	"github.com/openware/irix/portfolio/banking"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/kline"
+	"github.com/openware/pkg/kline"
 	"github.com/openware/irix/protocol"
 	"github.com/openware/pkg/request"
 	"github.com/openware/irix/stream"

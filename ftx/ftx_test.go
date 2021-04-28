@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openware/tradepoint/config"
-	"github.com/openware/tradepoint/core"
+	"github.com/openware/irix/config"
+	"github.com/openware/irix"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/tradepoint/portfolio/withdraw"
+	"github.com/openware/irix/portfolio/withdraw"
 	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/kline"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/kline"
+	"github.com/openware/pkg/order"
 	"github.com/openware/irix/sharedtestvalues"
 )
 
@@ -400,7 +400,7 @@ func TestWithdraw(t *testing.T) {
 	if !areTestAPIKeysSet() || !canManipulateRealOrders {
 		t.Skip("skipping test, either api keys or canManipulateRealOrders isnt set correctly")
 	}
-	_, err := f.Withdraw("BtC", core.BitcoinDonationAddress, "", "", "957378", 0.0009)
+	_, err := f.Withdraw("BtC", exchange.BitcoinTestAddress, "", "", "957378", 0.0009)
 	if err != nil {
 		t.Error(err)
 	}

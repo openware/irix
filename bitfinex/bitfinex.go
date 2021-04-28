@@ -17,9 +17,9 @@ import (
 	"github.com/openware/pkg/common/crypto"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
-	"github.com/openware/tradepoint/portfolio/withdraw"
+	"github.com/openware/irix/portfolio/withdraw"
 	exchange "github.com/openware/irix"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 	"github.com/openware/pkg/request"
 )
 

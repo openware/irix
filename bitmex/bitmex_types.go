@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 // RequestError allows for a general error capture from requests

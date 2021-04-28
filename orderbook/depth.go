@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/openware/tradepoint/dispatch"
+	"github.com/openware/pkg/dispatch"
 	"github.com/openware/pkg/log"
 )
 
