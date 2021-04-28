@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/openware/pkg/common"
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/kline"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/kline"
+	"github.com/openware/pkg/order"
 	"github.com/openware/irix/sharedtestvalues"
 )
 

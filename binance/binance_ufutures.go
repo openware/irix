@@ -13,7 +13,7 @@ import (
 	"github.com/openware/pkg/currency"
 	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 const (

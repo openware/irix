@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/openware/pkg/common"
-	"github.com/openware/tradepoint/config"
-	"github.com/openware/tradepoint/core"
+	"github.com/openware/irix/config"
+	"github.com/openware/irix"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/tradepoint/portfolio/withdraw"
+	"github.com/openware/irix/portfolio/withdraw"
 	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 var y Yobit
@@ -399,7 +399,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: core.BitcoinDonationAddress,
+		WalletAddress: exchange.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -422,7 +422,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: core.BitcoinDonationAddress,
+		WalletAddress: exchange.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -458,7 +458,7 @@ func TestWithdraw(t *testing.T) {
 		Currency:    currency.BTC,
 		Description: "WITHDRAW IT ALL",
 		Crypto: withdraw.CryptoRequest{
-			Address: core.BitcoinDonationAddress,
+			Address: exchange.BitcoinTestAddress,
 		},
 	}
 

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 // OrderbookResponse holds the orderbook data for a symbol

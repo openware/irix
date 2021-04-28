@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 // GenericResponse is the generic response you will get from coinut

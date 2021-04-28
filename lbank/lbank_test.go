@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
 	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/kline"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/kline"
+	"github.com/openware/pkg/order"
 )
 
 // Please supply your own keys here for due diligence testing

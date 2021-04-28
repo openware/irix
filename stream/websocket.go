@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/log"
 )
 

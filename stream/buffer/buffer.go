@@ -9,7 +9,7 @@ import (
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/orderbook"
+	"github.com/openware/pkg/orderbook"
 )
 
 const packageError = "websocket orderbook buffer error: %w"

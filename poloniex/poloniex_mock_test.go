@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openware/tradepoint/config"
+	"github.com/openware/irix/config"
 	"github.com/openware/pkg/mock"
 	"github.com/openware/irix/sharedtestvalues"
 )

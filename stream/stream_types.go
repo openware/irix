@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 )
 
 // Connection defines a streaming services connection

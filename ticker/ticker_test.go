@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/openware/pkg/currency"
-	"github.com/openware/tradepoint/dispatch"
+	"github.com/openware/pkg/dispatch"
 	"github.com/openware/pkg/asset"
 )
 

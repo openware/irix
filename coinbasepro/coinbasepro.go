@@ -17,7 +17,7 @@ import (
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
 	exchange "github.com/openware/irix"
-	"github.com/openware/irix/order"
+	"github.com/openware/pkg/order"
 	"github.com/openware/pkg/request"
 )
 
