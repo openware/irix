@@ -353,7 +353,6 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	return
 }
 
-
 func (c *Client) getAccountSummary(instrumentName string) (req *Request, err error) {
 	params := KVParams{}
 	if instrumentName != "" {
