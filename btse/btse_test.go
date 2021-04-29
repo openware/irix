@@ -10,6 +10,7 @@ import (
 
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
@@ -580,7 +581,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 		"-")
 	var orderCancellation = &order.Cancel{
 		ID:            "b334ecef-2b42-4998-b8a4-b6b14f6d2671",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -612,7 +613,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 		"-")
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,

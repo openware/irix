@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	exchange "github.com/openware/irix"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/irix/stream"
@@ -394,7 +395,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	}
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currency.NewPair(currency.LTC, currency.BTC),
 		AssetType:     asset.Spot,
@@ -420,7 +421,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -465,7 +466,7 @@ func TestWithdraw(t *testing.T) {
 	withdrawCryptoRequest := withdraw.Request{
 		Exchange: p.Name,
 		Crypto: withdraw.CryptoRequest{
-			Address:   exchange.BitcoinTestAddress,
+			Address:   faker.BitcoinTestAddress,
 			FeeAmount: 1,
 		},
 		Amount:        0,

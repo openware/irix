@@ -5,6 +5,7 @@ import (
 	"time"
 
 	exchange "github.com/openware/irix"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
@@ -304,7 +305,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	}
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currency.NewPair(currency.LTC, currency.BTC),
 		AssetType:     asset.Spot,
@@ -329,7 +330,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	}
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: faker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currency.NewPair(currency.LTC, currency.BTC),
 		AssetType:     asset.Spot,
@@ -367,7 +368,7 @@ func TestWithdraw(t *testing.T) {
 		Currency:    currency.BTC,
 		Description: "WITHDRAW IT ALL",
 		Crypto: withdraw.CryptoRequest{
-			Address: exchange.BitcoinTestAddress,
+			Address: faker.BitcoinTestAddress,
 		},
 	}
 

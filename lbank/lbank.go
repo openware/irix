@@ -16,11 +16,11 @@ import (
 	"strconv"
 	"strings"
 
-	gctcrypto "github.com/openware/pkg/common/crypto"
 	exchange "github.com/openware/irix"
+	"github.com/openware/irix/stream"
+	gctcrypto "github.com/openware/pkg/common/crypto"
 	"github.com/openware/pkg/order"
 	"github.com/openware/pkg/request"
-	"github.com/openware/irix/stream"
 )
 
 // Lbank is the overarching type across this package

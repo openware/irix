@@ -9,17 +9,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/openware/irix/config"
+	"github.com/openware/irix/protocol"
+	"github.com/openware/irix/stream"
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
-	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/log"
-	"github.com/openware/irix/portfolio/banking"
-	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/kline"
-	"github.com/openware/irix/protocol"
+	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/request"
-	"github.com/openware/irix/stream"
 )
 
 const (
@@ -427,47 +426,48 @@ func TestGetAssetTypes(t *testing.T) {
 	}
 }
 
-func TestGetClientBankAccounts(t *testing.T) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig(config.TestFile, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var b Base
-	var r *banking.Account
-	r, err = b.GetClientBankAccounts("Kraken", "USD")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if r.BankName != "test" {
-		t.Error("incorrect bank name")
-	}
-
-	_, err = b.GetClientBankAccounts("MEOW", "USD")
-	if err == nil {
-		t.Error("an error should have been thrown for a non-existent exchange")
-	}
-}
-
-func TestGetExchangeBankAccounts(t *testing.T) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig(config.TestFile, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var b = Base{Name: "Bitfinex"}
-	r, err := b.GetExchangeBankAccounts("", "USD")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if r.BankName != "Deutsche Bank Privat Und Geschaeftskunden AG" {
-		t.Fatal("incorrect bank name")
-	}
-}
+// FIXME: disabled the BankAccounts feature TBD
+//func TestGetClientBankAccounts(t *testing.T) {
+//	cfg := config.GetConfig()
+//	err := cfg.LoadConfig(config.TestFile, true)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//
+//	var b Base
+//	var r *banking.Account
+//	r, err = b.GetClientBankAccounts("Kraken", "USD")
+//	if err != nil {
+//		t.Error(err)
+//	}
+//
+//	if r.BankName != "test" {
+//		t.Error("incorrect bank name")
+//	}
+//
+//	_, err = b.GetClientBankAccounts("MEOW", "USD")
+//	if err == nil {
+//		t.Error("an error should have been thrown for a non-existent exchange")
+//	}
+//}
+//
+//func TestGetExchangeBankAccounts(t *testing.T) {
+//	cfg := config.GetConfig()
+//	err := cfg.LoadConfig(config.TestFile, true)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//
+//	var b = Base{Name: "Bitfinex"}
+//	r, err := b.GetExchangeBankAccounts("", "USD")
+//	if err != nil {
+//		t.Error(err)
+//	}
+//
+//	if r.BankName != "Deutsche Bank Privat Und Geschaeftskunden AG" {
+//		t.Fatal("incorrect bank name")
+//	}
+//}
 
 func TestSetCurrencyPairFormat(t *testing.T) {
 	t.Parallel()
