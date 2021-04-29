@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/dispatch"
-	"github.com/openware/pkg/asset"
 )
 
 func init() {

@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/openware/pkg/log"
 	exchange "github.com/openware/irix"
+	"github.com/openware/pkg/log"
 )
 
 const (

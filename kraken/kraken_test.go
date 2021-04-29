@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/irix/stream"
@@ -979,7 +980,7 @@ func TestWithdraw(t *testing.T) {
 	withdrawCryptoRequest := withdraw.Request{
 		Exchange: k.Name,
 		Crypto: withdraw.CryptoRequest{
-			Address: exchange.BitcoinTestAddress,
+			Address: faker.BitcoinTestAddress,
 		},
 		Amount:        -1,
 		Currency:      currency.XXBT,

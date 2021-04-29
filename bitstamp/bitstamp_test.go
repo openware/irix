@@ -5,6 +5,7 @@ import (
 	"time"
 
 	exchange "github.com/openware/irix"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/portfolio/banking"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/pkg/asset"
@@ -462,7 +463,7 @@ func TestWithdraw(t *testing.T) {
 		Currency:    currency.BTC,
 		Description: "WITHDRAW IT ALL",
 		Crypto: withdraw.CryptoRequest{
-			Address: exchange.BitcoinTestAddress,
+			Address: faker.BitcoinTestAddress,
 		},
 	}
 

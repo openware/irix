@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/openware/irix/portfolio/banking"
 	"github.com/openware/pkg/common/cache"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/portfolio/banking"
 )
 
 // RequestType used for easy matching of int type to Word

@@ -10,6 +10,7 @@ import (
 
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
+	"github.com/openware/irix/faker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/pkg/asset"
@@ -399,7 +400,7 @@ func TestWithdraw(t *testing.T) {
 	if !areTestAPIKeysSet() || !canManipulateRealOrders {
 		t.Skip("skipping test, either api keys or canManipulateRealOrders isnt set correctly")
 	}
-	_, err := f.Withdraw("BtC", exchange.BitcoinTestAddress, "", "", "957378", 0.0009)
+	_, err := f.Withdraw("BtC", faker.BitcoinTestAddress, "", "", "957378", 0.0009)
 	if err != nil {
 		t.Error(err)
 	}

@@ -6,9 +6,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/log"
-	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/orderbook"
 )
 
