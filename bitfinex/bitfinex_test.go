@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/websocket"
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
+	"github.com/openware/irix/faker/bitfaker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
-	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/kline"
@@ -862,7 +862,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: testdata.BitcoinTestAddress,
+		WalletAddress: bitfaker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -886,7 +886,7 @@ func TestCancelAllExchangeOrdera(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: testdata.BitcoinTestAddress,
+		WalletAddress: bitfaker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -928,7 +928,7 @@ func TestWithdraw(t *testing.T) {
 		Currency:    currency.BTC,
 		Description: "WITHDRAW IT ALL",
 		Crypto: withdraw.CryptoRequest{
-			Address: testdata.BitcoinTestAddress,
+			Address: bitfaker.BitcoinTestAddress,
 		},
 	}
 

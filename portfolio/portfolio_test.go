@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	testdata "github.com/openware/irix/test"
+	"github.com/openware/irix/faker/bitfaker"
 	"github.com/openware/pkg/currency"
 )
 
@@ -479,11 +479,11 @@ func TestSeed(t *testing.T) {
 
 func TestIsExchangeSupported(t *testing.T) {
 	seedPortFolioForTest(t)
-	ret := IsExchangeSupported("BTC Markets", testdata.BitcoinTestAddress)
+	ret := IsExchangeSupported("BTC Markets", bitfaker.BitcoinTestAddress)
 	if !ret {
 		t.Fatal("expected IsExchangeSupported() to return true")
 	}
-	ret = IsExchangeSupported("Kraken", testdata.BitcoinTestAddress)
+	ret = IsExchangeSupported("Kraken", bitfaker.BitcoinTestAddress)
 	if ret {
 		t.Fatal("expected IsExchangeSupported() to return false")
 	}
@@ -491,7 +491,7 @@ func TestIsExchangeSupported(t *testing.T) {
 
 func TestIsColdStorage(t *testing.T) {
 	seedPortFolioForTest(t)
-	ret := IsColdStorage(testdata.BitcoinTestAddress)
+	ret := IsColdStorage(bitfaker.BitcoinTestAddress)
 	if !ret {
 		t.Fatal("expected IsColdStorage() to return true")
 	}
@@ -507,7 +507,7 @@ func TestIsColdStorage(t *testing.T) {
 
 func TestIsWhiteListed(t *testing.T) {
 	seedPortFolioForTest(t)
-	ret := IsWhiteListed(testdata.BitcoinTestAddress)
+	ret := IsWhiteListed(bitfaker.BitcoinTestAddress)
 	if !ret {
 		t.Fatal("expected IsWhiteListed() to return true")
 	}
@@ -557,7 +557,7 @@ func seedPortFolioForTest(t *testing.T) {
 	}
 	newBase := Base{}
 
-	err := newBase.AddAddress(testdata.BitcoinTestAddress, "test", currency.BTC, 1500)
+	err := newBase.AddAddress(bitfaker.BitcoinTestAddress, "test", currency.BTC, 1500)
 	if err != nil {
 		t.Fatalf("failed to add portfolio address with reason: %v, unable to continue tests", err)
 	}

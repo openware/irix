@@ -11,10 +11,10 @@ import (
 	"github.com/gorilla/websocket"
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
+	"github.com/openware/irix/faker/bitfaker"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/irix/stream"
-	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/currency"
@@ -622,7 +622,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "123456789012345678901234567890123456",
-		WalletAddress: testdata.BitcoinTestAddress,
+		WalletAddress: bitfaker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Futures,
@@ -646,7 +646,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = &order.Cancel{
 		ID:            "123456789012345678901234567890123456",
-		WalletAddress: testdata.BitcoinTestAddress,
+		WalletAddress: bitfaker.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Futures,
@@ -696,7 +696,7 @@ func TestWithdraw(t *testing.T) {
 	t.Parallel()
 	withdrawCryptoRequest := withdraw.Request{
 		Crypto: withdraw.CryptoRequest{
-			Address: testdata.BitcoinTestAddress,
+			Address: bitfaker.BitcoinTestAddress,
 		},
 		Amount:          -1,
 		Currency:        currency.BTC,

@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/openware/irix/faker/bitfaker"
 	"github.com/openware/irix/portfolio"
 	"github.com/openware/irix/portfolio/banking"
-	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/validate"
 )
@@ -45,7 +45,7 @@ var (
 	validCryptoRequest = &Request{
 		Exchange: "Binance",
 		Crypto: CryptoRequest{
-			Address: testdata.BitcoinTestAddress,
+			Address: bitfaker.BitcoinTestAddress,
 		},
 		Currency:    currency.BTC,
 		Description: "Test Withdrawal",
@@ -64,7 +64,7 @@ var (
 	invalidCryptoNegativeFeeRequest = &Request{
 		Exchange: "Binance",
 		Crypto: CryptoRequest{
-			Address:   testdata.BitcoinTestAddress,
+			Address:   bitfaker.BitcoinTestAddress,
 			FeeAmount: -0.1,
 		},
 		Currency:    currency.BTC,
@@ -76,7 +76,7 @@ var (
 	invalidCurrencyCryptoRequest = &Request{
 		Exchange: "Binance",
 		Crypto: CryptoRequest{
-			Address: testdata.BitcoinTestAddress,
+			Address: bitfaker.BitcoinTestAddress,
 		},
 		Currency: currency.AUD,
 		Amount:   0,
@@ -112,7 +112,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := portfolio.Portfolio.AddAddress(testdata.BitcoinTestAddress, "test", currency.BTC, 1500)
+	err := portfolio.Portfolio.AddAddress(bitfaker.BitcoinTestAddress, "test", currency.BTC, 1500)
 	if err != nil {
 		fmt.Printf("failed to add portfolio address with reason: %v, unable to continue tests", err)
 		os.Exit(0)
