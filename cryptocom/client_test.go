@@ -84,3 +84,18 @@ func TestConnectionRead(t *testing.T) {
 	// assertion
 	assert.Equal(t, expectedResponse, <-msgs)
 }
+
+func TestDefaultClient(t *testing.T) {
+	key, secret := "a", "b"
+	cl := Default(key, secret, false)
+	assert.Equal(t, fmt.Sprintf("wss://%s/%s", streamHost, apiVersion), cl.wsRootURL)
+	assert.Equal(t, fmt.Sprintf("https://%s/%s", host, apiVersion), cl.restRootURL)
+	assert.Equal(t, key, cl.key)
+	assert.Equal(t, secret, cl.secret)
+
+	cl = Default(key, secret, true)
+	assert.Equal(t, fmt.Sprintf("wss://%s/%s", sandboxStreamHost, apiVersion), cl.wsRootURL)
+	assert.Equal(t, fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion), cl.restRootURL)
+	assert.Equal(t, key, cl.key)
+	assert.Equal(t, secret, cl.secret)
+}

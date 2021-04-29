@@ -2,8 +2,8 @@ package cryptocom
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -42,8 +42,7 @@ func generateNonce() string {
 }
 
 func (r *Request) Encode() ([]byte, error) {
-	switch r.Type {
-	case AuthRequest:
+	if r.Method == publicAuth {
 		return json.Marshal(map[string]interface{}{
 			"id":      r.Id,
 			"method":  r.Method,
@@ -51,7 +50,14 @@ func (r *Request) Encode() ([]byte, error) {
 			"sig":     r.Signature,
 			"nonce":   r.Nonce,
 		})
-	case RestOrderRequest, RestBalanceRequest, RestTradesRequest, RestOpenOrdersRequest:
+	}
+	if r.Method == publicRespondHeartbeat {
+		return json.Marshal(map[string]interface{}{
+			"id":     r.Id,
+			"method": r.Method,
+		})
+	}
+	if strings.Contains(r.Method, "private/") {
 		return json.Marshal(map[string]interface{}{
 			"id":      r.Id,
 			"method":  r.Method,
@@ -60,20 +66,12 @@ func (r *Request) Encode() ([]byte, error) {
 			"sig":     r.Signature,
 			"nonce":   r.Nonce,
 		})
-	case SubscribeRequest, OrderRequest:
-		return json.Marshal(map[string]interface{}{
-			"id":     r.Id,
-			"method": r.Method,
-			"params": r.Params,
-			"nonce":  r.Nonce,
-		})
-
-	case HeartBeat:
-		return json.Marshal(map[string]interface{}{
-			"id":     r.Id,
-			"method": r.Method,
-		})
-	default:
-		return nil, errors.New("invalid type")
 	}
+	return json.Marshal(map[string]interface{}{
+		"id":     r.Id,
+		"method": r.Method,
+		"params": r.Params,
+		"nonce":  r.Nonce,
+	})
+
 }

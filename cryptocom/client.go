@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -84,6 +85,19 @@ func New(wsRootURL, restRootURL, key, secret string) *Client {
 		LogFunc:       defaultLogFunc,
 		isTerminating: false,
 	}
+}
+
+func Default(key, secret string, sandbox bool) *Client {
+	stream, rest := streamHost, host
+	if sandbox {
+		stream, rest = sandboxStreamHost, sandboxHost
+	}
+	return New(
+		fmt.Sprintf("wss://%s/%s", stream, apiVersion),
+		fmt.Sprintf("https://%s/%s", rest, apiVersion),
+		key,
+		secret,
+	)
 }
 
 // Connect instansiate WS Connections

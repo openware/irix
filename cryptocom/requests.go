@@ -1,6 +1,7 @@
 package cryptocom
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,7 @@ func (c *Client) AuthRequest() *Request {
 	r := &Request{
 		Id:     1,
 		Type:   AuthRequest,
-		Method: "public/auth",
+		Method: publicAuth,
 		ApiKey: c.key,
 		Nonce:  generateNonce(),
 	}
@@ -25,7 +26,7 @@ func (c *Client) subscribeRequest(channels []string) *Request {
 	return &Request{
 		Id:     1,
 		Type:   SubscribeRequest,
-		Method: "subscribe",
+		Method: subscribe,
 		Params: map[string]interface{}{"channels": channels},
 		Nonce:  generateNonce(),
 	}
@@ -35,7 +36,7 @@ func (c *Client) hearBeatRequest(reqId int) *Request {
 	return &Request{
 		Id:     reqId,
 		Type:   HeartBeat,
-		Method: "public/respond-heartbeat",
+		Method: publicRespondHeartbeat,
 	}
 }
 
@@ -50,7 +51,7 @@ func (c *Client) createOrderLimitRequest(
 	return &Request{
 		Id:     reqID,
 		Type:   OrderRequest,
-		Method: "private/create-order",
+		Method: privateCreateOrder,
 		Params: map[string]interface{}{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
@@ -80,7 +81,7 @@ func (c *Client) createOrderMarketRequest(
 	return &Request{
 		Id:     reqID,
 		Type:   OrderRequest,
-		Method: "private/create-order",
+		Method: privateCreateOrder,
 		Params: map[string]interface{}{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
@@ -96,7 +97,7 @@ func (c *Client) cancelOrderRequest(reqID int, remoteID, market string) *Request
 	return &Request{
 		Id:     reqID,
 		Type:   OrderRequest,
-		Method: "private/cancel-order",
+		Method: privateCancelOrder,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 			"order_id":        remoteID,
@@ -110,7 +111,7 @@ func (c *Client) cancelAllOrdersRequest(reqID int, market string) *Request {
 	return &Request{
 		Id:     reqID,
 		Type:   OrderRequest,
-		Method: "private/cancel-all-orders",
+		Method: privateCancelAllOrders,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 		},
@@ -122,7 +123,7 @@ func (c *Client) getOrderDetailsRequest(reqID int, remoteID string) *Request {
 	return &Request{
 		Id:     reqID,
 		Type:   OrderRequest,
-		Method: "private/get-order-detail",
+		Method: privateGetOrderDetail,
 		Params: map[string]interface{}{
 			"order_id": remoteID,
 		},
@@ -134,7 +135,7 @@ func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request
 	r := &Request{
 		Id:     reqID,
 		Type:   RestOrderRequest,
-		Method: "private/get-order-detail",
+		Method: privateGetOrderDetail,
 		Params: map[string]interface{}{
 			"order_id": remoteID,
 		},
@@ -150,7 +151,7 @@ func (c *Client) restGetBalanceRequest(reqID int) *Request {
 	r := &Request{
 		Id:     reqID,
 		Type:   RestBalanceRequest,
-		Method: "private/get-account-summary",
+		Method: privateGetAccountSummary,
 		Params: map[string]interface{}{},
 		ApiKey: c.key,
 		Nonce:  generateNonce(),
@@ -164,7 +165,7 @@ func (c *Client) restGetTradesRequest(reqID int, market string) *Request {
 	r := &Request{
 		Id:     reqID,
 		Type:   RestTradesRequest,
-		Method: "private/get-trades",
+		Method: privateGetTrades,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 		},
@@ -180,7 +181,7 @@ func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageS
 	r := &Request{
 		Id:     reqID,
 		Type:   RestOpenOrdersRequest,
-		Method: "private/get-open-orders",
+		Method: privateGetOpenOrders,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 			"page":            strconv.Itoa(page),
@@ -192,4 +193,35 @@ func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageS
 
 	c.generateSignature(r)
 	return r
+}
+
+func (c *Client) getInstruments() *Request {
+	return &Request{
+		Id: 1,
+		Method:    publicGetInstruments,
+		Nonce:     generateNonce(),
+	}
+}
+
+func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Request, err error) {
+	if instrument == "" ||
+		len(strings.Split(instrument, "_")) != 2 {
+		err = errors.New("invalid instrument name value")
+		return
+	}
+	// max depth based on docs
+	if depth < 1 || depth > 150 {
+		err = errors.New("invalid depth value")
+		return
+	}
+	req = &Request{
+		Id:        reqID,
+		Method:    publicGetBook,
+		Nonce:     generateNonce(),
+		Params: map[string]interface{}{
+			"instrument_name": instrument,
+			"depth": strconv.Itoa(depth),
+		},
+	}
+	return
 }
