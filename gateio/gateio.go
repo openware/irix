@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	exchange "github.com/openware/irix"
+	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/pkg/common/convert"
 	"github.com/openware/pkg/common/crypto"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/portfolio/withdraw"
-	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/kline"
 	"github.com/openware/pkg/request"
 )

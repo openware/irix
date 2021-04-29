@@ -12,6 +12,7 @@ import (
 	"github.com/openware/irix/config"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
+	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/kline"
@@ -399,7 +400,7 @@ func TestWithdraw(t *testing.T) {
 	if !areTestAPIKeysSet() || !canManipulateRealOrders {
 		t.Skip("skipping test, either api keys or canManipulateRealOrders isnt set correctly")
 	}
-	_, err := f.Withdraw("BtC", exchange.BitcoinTestAddress, "", "", "957378", 0.0009)
+	_, err := f.Withdraw("BtC", testdata.BitcoinTestAddress, "", "", "957378", 0.0009)
 	if err != nil {
 		t.Error(err)
 	}

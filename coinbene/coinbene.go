@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
+	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/crypto"
-	exchange "github.com/openware/irix"
 	"github.com/openware/pkg/order"
 	"github.com/openware/pkg/request"
 )

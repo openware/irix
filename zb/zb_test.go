@@ -12,6 +12,7 @@ import (
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/stream"
+	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
@@ -321,7 +322,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	currencyPair := currency.NewPair(currency.XRP, currency.USDT)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: testdata.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -346,7 +347,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	currencyPair := currency.NewPair(currency.XRP, currency.USDT)
 	var orderCancellation = &order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: testdata.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 		AssetType:     asset.Spot,
@@ -404,7 +405,7 @@ func TestWithdraw(t *testing.T) {
 
 	withdrawCryptoRequest := withdraw.Request{
 		Crypto: withdraw.CryptoRequest{
-			Address:   exchange.BitcoinTestAddress,
+			Address:   testdata.BitcoinTestAddress,
 			FeeAmount: 1,
 		},
 		Amount:      -1,

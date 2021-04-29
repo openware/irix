@@ -18,6 +18,7 @@ import (
 	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/irix/stream"
+	testdata "github.com/openware/irix/test"
 	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/currency"
@@ -248,7 +249,7 @@ func TestAccountWithdrawRequest(t *testing.T) {
 		Currency:    currency.BTC.String(),
 		TradePwd:    "1234",
 		Destination: 4,
-		ToAddress:   exchange.BitcoinTestAddress,
+		ToAddress:   testdata.BitcoinTestAddress,
 		Fee:         1,
 	}
 
@@ -1807,7 +1808,7 @@ func TestCancelExchangeOrder(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: testdata.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 	}
@@ -1823,7 +1824,7 @@ func TestCancelAllExchangeOrders(t *testing.T) {
 	currencyPair := currency.NewPair(currency.LTC, currency.BTC)
 	var orderCancellation = order.Cancel{
 		ID:            "1",
-		WalletAddress: exchange.BitcoinTestAddress,
+		WalletAddress: testdata.BitcoinTestAddress,
 		AccountID:     "1",
 		Pair:          currencyPair,
 	}
@@ -1860,7 +1861,7 @@ func TestWithdraw(t *testing.T) {
 	t.Parallel()
 	withdrawCryptoRequest := withdraw.Request{
 		Crypto: withdraw.CryptoRequest{
-			Address:   exchange.BitcoinTestAddress,
+			Address:   testdata.BitcoinTestAddress,
 			FeeAmount: 1,
 		},
 		Amount:        -1,

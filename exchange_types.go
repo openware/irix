@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/openware/irix/config"
-	"github.com/openware/pkg/currency"
+	"github.com/openware/irix/protocol"
+	"github.com/openware/irix/stream"
 	"github.com/openware/pkg/asset"
+	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/kline"
 	"github.com/openware/pkg/order"
-	"github.com/openware/irix/protocol"
 	"github.com/openware/pkg/request"
-	"github.com/openware/irix/stream"
 )
 
 // Endpoint authentication types
@@ -89,8 +89,6 @@ const (
 	NoFiatWithdrawalsText                   string = "NO FIAT WITHDRAWAL"
 	UnknownWithdrawalTypeText               string = "UNKNOWN"
 )
-
-const BitcoinTestAddress = "1MK6jowLN2kC5RrWoHMVqFi2Gq6yQjHQKm"
 
 // FeeType is the type for holding a custom fee type (International withdrawal fee)
 type FeeType uint8
