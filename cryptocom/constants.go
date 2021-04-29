@@ -90,3 +90,8 @@ func (c Interval) Encode() string {
 		return ""
 	}
 }
+
+// rate limit
+const (
+
+)
