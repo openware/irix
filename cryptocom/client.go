@@ -95,7 +95,6 @@ func Default(key, secret string, sandbox bool) *Client {
 	)
 }
 
-
 // Connect instansiate WS Connections
 func (c *Client) Connect() error {
 	publicWsEndpoint := c.wsRootURL + marketEndpoint
