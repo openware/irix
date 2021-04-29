@@ -6,11 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openware/pkg/core"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/exchanges/validate"
-	"github.com/openware/pkg/portfolio"
-	"github.com/openware/pkg/portfolio/banking"
+	"github.com/openware/pkg/validate"
+	"github.com/openware/irix/portfolio"
+	"github.com/openware/irix/portfolio/banking"
 )
 
 const (

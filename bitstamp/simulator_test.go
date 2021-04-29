@@ -1,15 +1,14 @@
-package simulator
+package bitstamp
 
 import (
 	"testing"
 
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/bitstamp"
 )
 
 func TestSimulate(t *testing.T) {
-	b := bitstamp.Bitstamp{}
+	b := Bitstamp{}
 	b.SetDefaults()
 	o, err := b.FetchOrderbook(currency.NewPair(currency.BTC, currency.USD), asset.Spot)
 	if err != nil {

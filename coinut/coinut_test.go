@@ -8,16 +8,15 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/openware/pkg/common"
-	"github.com/openware/irix/config"
-	"github.com/openware/irix"
-	"github.com/openware/pkg/currency"
-	"github.com/openware/irix/portfolio/withdraw"
 	exchange "github.com/openware/irix"
-	"github.com/openware/pkg/asset"
-	"github.com/openware/pkg/order"
+	"github.com/openware/irix/config"
+	"github.com/openware/irix/portfolio/withdraw"
 	"github.com/openware/irix/sharedtestvalues"
 	"github.com/openware/irix/stream"
+	"github.com/openware/pkg/asset"
+	"github.com/openware/pkg/common"
+	"github.com/openware/pkg/currency"
+	"github.com/openware/pkg/order"
 )
 
 var c COINUT
