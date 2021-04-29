@@ -10,18 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openware/irix/config"
+	"github.com/openware/irix/protocol"
+	"github.com/openware/irix/stream"
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
 	"github.com/openware/pkg/common/crypto"
-	"github.com/openware/irix/config"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/log"
-	"github.com/openware/irix/portfolio/banking"
-	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/kline"
-	"github.com/openware/irix/protocol"
+	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/request"
-	"github.com/openware/irix/stream"
 	"github.com/openware/pkg/trade"
 )
 
@@ -235,19 +234,20 @@ func (b *Base) GetPairAssetType(c currency.Pair) (asset.Item, error) {
 	return "", errors.New("asset type not associated with currency pair")
 }
 
+// FIXME: disabled the BankAccounts feature TBD
 // GetClientBankAccounts returns banking details associated with
 // a client for withdrawal purposes
-func (b *Base) GetClientBankAccounts(exchangeName, withdrawalCurrency string) (*banking.Account, error) {
-	cfg := config.GetConfig()
-	return cfg.GetClientBankAccounts(exchangeName, withdrawalCurrency)
-}
-
-// GetExchangeBankAccounts returns banking details associated with an
-// exchange for funding purposes
-func (b *Base) GetExchangeBankAccounts(id, depositCurrency string) (*banking.Account, error) {
-	cfg := config.GetConfig()
-	return cfg.GetExchangeBankAccounts(b.Name, id, depositCurrency)
-}
+// func (b *Base) GetClientBankAccounts(exchangeName, withdrawalCurrency string) (*banking.Account, error) {
+// 	cfg := config.GetConfig()
+// 	return cfg.GetClientBankAccounts(exchangeName, withdrawalCurrency)
+// }
+//
+// // GetExchangeBankAccounts returns banking details associated with an
+// // exchange for funding purposes
+// func (b *Base) GetExchangeBankAccounts(id, depositCurrency string) (*banking.Account, error) {
+// 	cfg := config.GetConfig()
+// 	return cfg.GetExchangeBankAccounts(b.Name, id, depositCurrency)
+// }
 
 // SetCurrencyPairFormat checks the exchange request and config currency pair
 // formats and syncs it with the exchanges SetDefault settings
