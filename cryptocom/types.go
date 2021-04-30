@@ -21,7 +21,6 @@ const (
 
 type Request struct {
 	Id        int
-	Type      uint8
 	Method    string
 	ApiKey    string
 	Signature string
@@ -35,6 +34,28 @@ type Response struct {
 	Code    int
 	Message string
 	Result  map[string]interface{}
+}
+
+type RawResponse struct {
+	ID      int
+	Method  string
+	Code    int
+	Message string
+}
+
+type InstrumentResponse struct {
+	Result InstrumentResult `json:"result"`
+}
+type InstrumentResult struct {
+	Instruments []Instruments `json:"instruments"`
+}
+type Instruments struct {
+	InstrumentName       string `json:"instrument_name"`
+	QuoteCurrency        string `json:"quote_currency"`
+	BaseCurrency         string `json:"base_currency"`
+	PriceDecimals        int    `json:"price_decimals"`
+	QuantityDecimals     int    `json:"quantity_decimals"`
+	MarginTradingEnabled bool   `json:"margin_trading_enabled"`
 }
 
 func generateNonce() string {

@@ -51,7 +51,7 @@ func TestConnectionWrite(t *testing.T) {
 	t.Run("auth", func(t *testing.T) {
 		client.privateConn = Connection{Transport: &connectionMock{Buffer: privateBuffer}, Mutex: &sync.Mutex{}}
 
-		req := client.AuthRequest()
+		req := client.authRequest()
 		client.sendPrivateRequest(req)
 
 		expected := fmt.Sprintf("{\"api_key\":\"test\",\"id\":1,\"method\":\"public/auth\",\"nonce\":\"%v\",\"sig\":\"%v\"}", req.Nonce, req.Signature)
@@ -61,7 +61,7 @@ func TestConnectionWrite(t *testing.T) {
 
 func TestConnectionRead(t *testing.T) {
 	// prepare mock
-	client := New("", "", "test", "test")
+	client := Default("test", "test", true)
 	privateResponse := make(chan *bytes.Buffer, 1)
 	publicResponse := make(chan *bytes.Buffer, 1)
 	client.connectMock(privateResponse, publicResponse, bytes.NewBuffer(nil), bytes.NewBuffer(nil))

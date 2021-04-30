@@ -18,11 +18,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	userEndpoint   = "/v2/user"
-	marketEndpoint = "/v2/market"
-)
-
 type LogFunc func(format string, args ...interface{})
 
 func defaultLogFunc(format string, args ...interface{}) {
@@ -234,7 +229,7 @@ func (c *Client) generateSignature(r *Request) {
 }
 
 func (c *Client) authenticate() {
-	r := c.AuthRequest()
+	r := c.authRequest()
 	c.sendPrivateRequest(r)
 }
 

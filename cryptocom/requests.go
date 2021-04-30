@@ -9,10 +9,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (c *Client) AuthRequest() *Request {
+func (c *Client) authRequest() *Request {
 	r := &Request{
 		Id:     1,
-		Type:   AuthRequest,
 		Method: publicAuth,
 		ApiKey: c.key,
 		Nonce:  generateNonce(),
@@ -25,7 +24,6 @@ func (c *Client) AuthRequest() *Request {
 func (c *Client) subscribeRequest(channels []string) *Request {
 	return &Request{
 		Id:     1,
-		Type:   SubscribeRequest,
 		Method: subscribe,
 		Params: map[string]interface{}{"channels": channels},
 		Nonce:  generateNonce(),
@@ -35,7 +33,6 @@ func (c *Client) subscribeRequest(channels []string) *Request {
 func (c *Client) hearBeatRequest(reqId int) *Request {
 	return &Request{
 		Id:     reqId,
-		Type:   HeartBeat,
 		Method: publicRespondHeartbeat,
 	}
 }
@@ -50,7 +47,6 @@ func (c *Client) createOrderLimitRequest(
 	uuid uuid.UUID) *Request {
 	return &Request{
 		Id:     reqID,
-		Type:   OrderRequest,
 		Method: privateCreateOrder,
 		Params: map[string]interface{}{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
@@ -80,7 +76,6 @@ func (c *Client) createOrderMarketRequest(
 
 	return &Request{
 		Id:     reqID,
-		Type:   OrderRequest,
 		Method: privateCreateOrder,
 		Params: map[string]interface{}{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
@@ -96,7 +91,6 @@ func (c *Client) createOrderMarketRequest(
 func (c *Client) cancelOrderRequest(reqID int, remoteID, market string) *Request {
 	return &Request{
 		Id:     reqID,
-		Type:   OrderRequest,
 		Method: privateCancelOrder,
 		Params: map[string]interface{}{
 			"instrument_name": market,
@@ -110,7 +104,6 @@ func (c *Client) cancelOrderRequest(reqID int, remoteID, market string) *Request
 func (c *Client) cancelAllOrdersRequest(reqID int, market string) *Request {
 	return &Request{
 		Id:     reqID,
-		Type:   OrderRequest,
 		Method: privateCancelAllOrders,
 		Params: map[string]interface{}{
 			"instrument_name": market,
@@ -122,7 +115,6 @@ func (c *Client) cancelAllOrdersRequest(reqID int, market string) *Request {
 func (c *Client) getOrderDetailsRequest(reqID int, remoteID string) *Request {
 	return &Request{
 		Id:     reqID,
-		Type:   OrderRequest,
 		Method: privateGetOrderDetail,
 		Params: map[string]interface{}{
 			"order_id": remoteID,
@@ -134,7 +126,6 @@ func (c *Client) getOrderDetailsRequest(reqID int, remoteID string) *Request {
 func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request {
 	r := &Request{
 		Id:     reqID,
-		Type:   RestOrderRequest,
 		Method: privateGetOrderDetail,
 		Params: map[string]interface{}{
 			"order_id": remoteID,
@@ -150,7 +141,6 @@ func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request
 func (c *Client) restGetBalanceRequest(reqID int) *Request {
 	r := &Request{
 		Id:     reqID,
-		Type:   RestBalanceRequest,
 		Method: privateGetAccountSummary,
 		Params: map[string]interface{}{},
 		ApiKey: c.key,
@@ -164,7 +154,6 @@ func (c *Client) restGetBalanceRequest(reqID int) *Request {
 func (c *Client) restGetTradesRequest(reqID int, market string) *Request {
 	r := &Request{
 		Id:     reqID,
-		Type:   RestTradesRequest,
 		Method: privateGetTrades,
 		Params: map[string]interface{}{
 			"instrument_name": market,
@@ -180,7 +169,6 @@ func (c *Client) restGetTradesRequest(reqID int, market string) *Request {
 func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageSize int) *Request {
 	r := &Request{
 		Id:     reqID,
-		Type:   RestOpenOrdersRequest,
 		Method: privateGetOpenOrders,
 		Params: map[string]interface{}{
 			"instrument_name": market,
@@ -204,24 +192,30 @@ func (c *Client) getInstruments() *Request {
 }
 
 func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Request, err error) {
+	splits := strings.Split(instrument, "_")
 	if instrument == "" ||
-		len(strings.Split(instrument, "_")) != 2 {
+		len(splits) != 2 ||
+		splits[0] == "" ||
+		splits[1] == "" {
 		err = errors.New("invalid instrument name value")
 		return
 	}
 	// max depth based on docs
-	if depth < 1 || depth > 150 {
+	if depth < 0 || depth > 150 {
 		err = errors.New("invalid depth value")
 		return
+	}
+	params := map[string]interface{}{
+		"instrument_name": instrument,
+	}
+	if depth > 0 {
+		params["depth"] = strconv.Itoa(depth)
 	}
 	req = &Request{
 		Id:        reqID,
 		Method:    publicGetBook,
 		Nonce:     generateNonce(),
-		Params: map[string]interface{}{
-			"instrument_name": instrument,
-			"depth": strconv.Itoa(depth),
-		},
+		Params: params,
 	}
 	return
 }

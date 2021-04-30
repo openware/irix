@@ -39,9 +39,9 @@ const (
 	privateSetCancelOnDisconnect = "private/set-cancel-on-disconnect"
 	privateGetCancelOnDisconnect = "private/get-cancel-on-disconnect"
 	subscribe = "subscribe"
+	// ws endpoints
+	userEndpoint   = "user"
+	marketEndpoint = "market"
 )
 
 // rate limit
-const (
-
-)
