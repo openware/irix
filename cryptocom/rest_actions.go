@@ -27,6 +27,18 @@ func (c *Client) RestOpenOrders(reqID int, market string, pageNumber int, pageSi
 	return c.send(r)
 }
 
+func (c *Client) RestGetInstruments() (res []Instruments, err error) {
+	req := c.getInstruments()
+	var result InstrumentResponse
+	_, err = c.rest.Send("GET", req, &result)
+	if err == nil {
+		for _, r := range result.Result.Instruments {
+			res = append(res, r)
+		}
+	}
+	return
+}
+
 func (c *Client) send(r *Request) (Response, error) {
 	body, err := r.Encode()
 	if err != nil {

@@ -26,11 +26,11 @@ type httpClient struct {
 	root string
 }
 
-func (h *httpClient) Send(httpMethod string, request *Request, out interface{}) (res RawResponse, err error) {
+func (h *httpClient) Send(verb string, request *Request, out interface{}) (res RawResponse, err error) {
 	var req *http.Request
-	switch httpMethod {
+	switch verb {
 	case "GET":
-		req, _ = http.NewRequest(httpMethod, fmt.Sprintf("%s/%s", h.root, request.Method), nil)
+		req, _ = http.NewRequest(verb, fmt.Sprintf("%s/%s", h.root, request.Method), nil)
 		q := req.URL.Query()
 		if request.Id > 0 {
 			q.Add("id", fmt.Sprint(request.Id))
@@ -55,7 +55,7 @@ func (h *httpClient) Send(httpMethod string, request *Request, out interface{}) 
 			err = err1
 			return
 		}
-		req, _ = http.NewRequest(httpMethod, fmt.Sprint(h.root, request.Method), bytes.NewBuffer(payload))
+		req, _ = http.NewRequest(verb, fmt.Sprint(h.root, request.Method), bytes.NewBuffer(payload))
 		break
 	}
 	var rawMsg json.RawMessage
@@ -63,6 +63,7 @@ func (h *httpClient) Send(httpMethod string, request *Request, out interface{}) 
 	if err != nil {
 		return
 	}
+	defer httpRes.Body.Close()
 	if rawMsg, err = ioutil.ReadAll(httpRes.Body); err != nil {
 		return
 	}

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/mock"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -257,4 +259,63 @@ func TestRestOpenOrders(t *testing.T) {
 		assert.Equal(t, Response{}, response)
 		assert.Equal(t, errors.New(""), err)
 	})
+}
+
+func mockResponseBody(id int, method string, code int, result interface{}) []byte {
+	b, _ := json.Marshal(map[string]interface {
+	}{
+		"id":     id,
+		"method": method,
+		"code":   code,
+		"result": result,
+	})
+	return b
+}
+func TestClient_RestGetInstruments(t *testing.T) {
+	method := publicGetInstruments
+	testCases := []struct {
+		responseBody     []byte
+		responseCode     int
+		totalInstruments int
+		shouldError      bool
+	}{
+		// invalid cases
+		{mockResponseBody(1, method, 10004, nil), 400, 0, true},
+		{mockResponseBody(1, method, 10001, nil), 500, 0, true},
+		// valid cases
+		{mockResponseBody(1, method, 0, InstrumentResult{Instruments: nil}), 200, 0, false},
+		{mockResponseBody(1, method, 0, InstrumentResult{Instruments: []Instruments{
+			{
+				InstrumentName:       "BTC_USDT",
+				QuoteCurrency:        "BTC",
+				BaseCurrency:         "USDT",
+				PriceDecimals:        7,
+				QuantityDecimals:     3,
+				MarginTradingEnabled: false,
+			},
+		}}), 200, 1, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetInstruments()
+		mockClient.AssertExpectations(t)
+		if r.shouldError {
+			assert.Nil(t, res, r)
+			assert.NotNil(t, err, r)
+		} else {
+			assert.Nil(t, err, r)
+			assert.Len(t, res, r.totalInstruments, r)
+			if r.totalInstruments > 0 {
+				assert.NotNil(t, res, r)
+			}
+		}
+	}
 }

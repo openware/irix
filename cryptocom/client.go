@@ -64,6 +64,8 @@ type Client struct {
 	outbox        chan Response
 	LogFunc       LogFunc
 	wg            sync.WaitGroup
+	rest          HttpTransport
+	ws            WsTransport
 }
 
 // New returns a pointer of Client struct
@@ -79,6 +81,7 @@ func New(wsRootURL, restRootURL, key, secret string) *Client {
 		httpClient:    &http.Client{},
 		LogFunc:       defaultLogFunc,
 		isTerminating: false,
+		rest: newHttpClient(&http.Client{}, restRootURL),
 	}
 }
 
