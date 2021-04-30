@@ -64,3 +64,42 @@ func TestRequest_GetBook(t *testing.T)  {
 		}
 	}
 }
+
+func TestRequest_GetCandlestick(t *testing.T)  {
+	t.Parallel()
+	type args struct {
+		instrument  string
+		period      Interval
+		depth       int
+		shouldError bool
+	}
+	inputs := []args{
+		// invalid inputs
+		{"", Minute1, 1, true},
+		{"_", Minute5, 1, true},
+		{"BTC_", Minute1, 1, true},
+		{"_USDT", Minute1, 1, true},
+		{"BTC_USDT", -10, 1, true},
+		{"BTC_USDT", 100, 1, true},
+		// valid inputs
+		{"BTC_USDT", Minute5, 10, false},
+		{"BTC_USDT", Hour1, 100, false},
+		{"BTC_USDT", Week, 0, false},
+	}
+
+	for _, arg := range inputs {
+		r, err := cl.getCandlestick(arg.instrument, arg.period, arg.depth)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, publicGetCandlestick, r.Method, arg)
+			assert.Equal(t, arg.instrument, r.Params["instrument_name"], arg)
+			assert.Equal(t, arg.period.Encode(), r.Params["interval"], arg)
+			if arg.depth > 0 {
+				assert.Equal(t, arg.depth, r.Params["depth"])
+			}
+		}
+	}
+}

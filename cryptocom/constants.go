@@ -43,3 +43,50 @@ const (
 	userEndpoint   = "user"
 	marketEndpoint = "market"
 )
+
+type Interval int
+const (
+	Minute1 Interval = iota + 1
+	Minute5
+	Minute15
+	Minute30
+	Hour1
+	Hour4
+	Hour6
+	Hour12
+	Day
+	Week
+	Week2
+	Month
+)
+
+func (c Interval) Encode() string {
+	switch c {
+	case Minute1:
+		return "1m"
+	case Minute5:
+		return "5m"
+	case Minute15:
+		return "15m"
+	case Minute30:
+		return "30m"
+	case Hour1:
+		return "1h"
+	case Hour4:
+		return "4h"
+	case Hour6:
+		return "6h"
+	case Hour12:
+		return "12h"
+	case Day:
+		return "1d"
+	case Week:
+		return "1w"
+	case Week2:
+		return "2w"
+	case Month:
+		return "1M"
+	default:
+		return ""
+	}
+}

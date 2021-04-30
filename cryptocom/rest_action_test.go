@@ -29,6 +29,35 @@ func (m *mockHTTPClientError) Post(endpoint, contentType string, body io.Reader)
 func (m *mockHTTPClientError) Get(endpoint string) (resp *http.Response, err error) {
 	return nil, errors.New("")
 }
+func mockResponseBody(id int, method string, code int, result interface{}) []byte {
+	b, _ := json.Marshal(map[string]interface {
+	}{
+		"id":     id,
+		"method": method,
+		"code":   code,
+		"result": result,
+	})
+	return b
+}
+func mockOrderbook(instrumentName string, depth int, bids, asks [][]float64, t int64) OrderbookResult {
+	return OrderbookResult{
+		InstrumentName: instrumentName,
+		Depth:          depth,
+		Data: []OrderbookData{{
+			Bids: bids,
+			Asks: asks,
+			T:    t,
+		}},
+	}
+}
+func mockCandlestick(instrumentName string, period Interval, depth int, data []Candlestick) CandlestickResult {
+	return CandlestickResult{
+		InstrumentName: instrumentName,
+		Depth:          depth,
+		Interval:       period.Encode(),
+		Data:           data,
+	}
+}
 
 type testRestFunc func(client *Client) (Response, error)
 
@@ -263,16 +292,6 @@ func TestRestOpenOrders(t *testing.T) {
 	})
 }
 
-func mockResponseBody(id int, method string, code int, result interface{}) []byte {
-	b, _ := json.Marshal(map[string]interface {
-	}{
-		"id":     id,
-		"method": method,
-		"code":   code,
-		"result": result,
-	})
-	return b
-}
 func TestClient_RestGetInstruments(t *testing.T) {
 	method := publicGetInstruments
 	testCases := []struct {
@@ -321,17 +340,6 @@ func TestClient_RestGetInstruments(t *testing.T) {
 		}
 	}
 }
-func composeOrderbook(instrumentName string, depth int, bids, asks [][]float64, t int64) OrderbookResult {
-	return OrderbookResult{
-		InstrumentName: instrumentName,
-		Depth:          depth,
-		Data: []OrderbookData{{
-			Bids: bids,
-			Asks: asks,
-			T:    t,
-		}},
-	}
-}
 
 func TestClient_RestGetOrderbook(t *testing.T) {
 	method := publicGetBook
@@ -356,9 +364,9 @@ func TestClient_RestGetOrderbook(t *testing.T) {
 		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10004, nil), 400, false, true},
 		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10001, nil), 500, false, true},
 		// valid cases
-		{"BTC_USDT", 0, 150, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 150, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
-		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 1, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
-		{"BTC_USDT", 3, 3, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 3, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+		{"BTC_USDT", 0, 150, mockResponseBody(1, method, 0, mockOrderbook("BTC_USDT", 150, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 0, mockOrderbook("BTC_USDT", 1, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+		{"BTC_USDT", 3, 3, mockResponseBody(1, method, 0, mockOrderbook("BTC_USDT", 3, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
 	}
 	for _, r := range testCases {
 		mockClient := &httpClientMock{}
@@ -366,7 +374,6 @@ func TestClient_RestGetOrderbook(t *testing.T) {
 			StatusCode: r.responseCode,
 			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
 		}
-		fmt.Println("mock body", string(r.responseBody))
 		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
 		cli := &Client{rest: newHttpClient(mockClient,
 			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
@@ -385,7 +392,6 @@ func TestClient_RestGetOrderbook(t *testing.T) {
 			assert.NotNil(t, err, r)
 		} else if !r.shouldErrorValidation && !r.shouldError {
 			assert.Nil(t, err, r)
-			fmt.Println(res)
 			assert.Equal(t, r.instrumentName, res.InstrumentName)
 			for _, b := range res.Data {
 				for _, bid := range b.Bids {
@@ -395,6 +401,65 @@ func TestClient_RestGetOrderbook(t *testing.T) {
 					assert.Len(t, ask, 3)
 				}
 			}
+		}
+	}
+}
+func TestClient_RestGetCandlestick(t *testing.T) {
+	method := publicGetCandlestick
+
+	testCases := []struct {
+		instrumentName        string
+		depth                 int
+		interval              Interval
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT", 0, Minute1, nil, 400, true, false},
+		{"BTC_", 0, Minute1, nil, 400, true, false},
+		{"_", 1, Minute1, nil, 400, true, false},
+		{"", 1, Minute1, nil, 400, true, false},
+		{"BTC_USDT", 151, 151, mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT", -100, -100, mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// invalid cases
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10001, nil), 500, false, true},
+		// valid cases
+		{"BTC_USDT", 0, Month, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Month, 1000, []Candlestick{{time.Now().Unix(), 1,1,1,1,1}})), 200, false, false},
+		{"BTC_USDT", 10, Week, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Week, 1000, []Candlestick{{time.Now().Unix(), 1,1,1,1,1}})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetCandlestick(r.instrumentName, r.interval, r.depth)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			assert.Equal(t, "GET", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			if r.depth > 0 {
+				assert.Equal(t, strconv.Itoa(r.depth), req.URL.Query().Get("depth"))
+			}
+			assert.Equal(t, r.interval.Encode(), req.URL.Query().Get("interval"))
+			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			assert.Equal(t, r.instrumentName, res.InstrumentName)
+			assert.NotNil(t, res.Data)
 		}
 	}
 }

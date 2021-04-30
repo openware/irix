@@ -192,12 +192,7 @@ func (c *Client) getInstruments() *Request {
 }
 
 func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Request, err error) {
-	splits := strings.Split(instrument, "_")
-	if instrument == "" ||
-		len(splits) != 2 ||
-		splits[0] == "" ||
-		splits[1] == "" {
-		err = errors.New("invalid instrument name value")
+	if err = validInstrument(instrument); err != nil {
 		return
 	}
 	// max depth based on docs
@@ -219,6 +214,32 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 		Method:    publicGetBook,
 		Nonce:     generateNonce(),
 		Params: params,
+	}
+	return
+}
+
+func (c *Client) getCandlestick(instrumentName string, period Interval, depth int) (req *Request, err error) {
+	if err = validInstrument(instrumentName); err != nil {
+		return
+	}
+	if period < Minute1 || period > Month {
+		err = errors.New("invalid interval")
+		return
+	}
+	if depth < 0 || depth > 1000 {
+		err = errors.New("invalid interval")
+		return
+	}
+	params := map[string]interface{}{
+		"instrument_name": instrumentName,
+		"interval": period.Encode(),
+	}
+	if depth > 0 {
+		params["depth"] = depth
+	}
+	req = &Request{
+		Method:    publicGetCandlestick,
+		Params:    params,
 	}
 	return
 }

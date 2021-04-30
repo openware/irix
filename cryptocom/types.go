@@ -62,18 +62,35 @@ type OrderbookResponse struct {
 	Result OrderbookResult `json:"result"`
 }
 type OrderbookResult struct {
-	InstrumentName string `json:"instrument_name"`
-	Depth int `json:"depth"`
-	Data []OrderbookData `json:"data"`
+	InstrumentName string          `json:"instrument_name"`
+	Depth          int             `json:"depth"`
+	Data           []OrderbookData `json:"data"`
 }
 type Orderbook [][]float64
 type OrderbookData struct {
 	Bids Orderbook `json:"bids"`
 	Asks Orderbook `json:"asks"`
-	T int64 `json:"t"`
+	T    int64     `json:"t"`
 }
 
+type CandlestickResponse struct {
+	Result CandlestickResult `json:"result"`
+}
+type CandlestickResult struct {
+	InstrumentName string        `json:"instrument_name"`
+	Depth          int           `json:"depth"`
+	Interval       string        `json:"interval"`
+	Data           []Candlestick `json:"data"`
+}
 
+type Candlestick struct {
+	Time   int64 `json:"t"`
+	Open   int `json:"o"`
+	High   int `json:"h"`
+	Low    int `json:"l"`
+	Close  int `json:"c"`
+	Volume int `json:"v"`
+}
 
 func generateNonce() string {
 	return fmt.Sprintf("%d", time.Now().Unix()*1000)

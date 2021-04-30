@@ -48,6 +48,18 @@ func (c *Client) RestGetOrderBook(reqID int, instrumentName string, depth int) (
 	}
 	return
 }
+func (c *Client) RestGetCandlestick(instrumentName string, interval Interval, depth int) (res CandlestickResult, err error) {
+	req, err := c.getCandlestick(instrumentName, interval, depth)
+	if err != nil {
+		return
+	}
+	var result CandlestickResponse
+	_, err = c.rest.Send("GET", req, &result)
+	if err == nil {
+		res = result.Result
+	}
+	return
+}
 
 func (c *Client) send(r *Request) (Response, error) {
 	body, err := r.Encode()
