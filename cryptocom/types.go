@@ -58,6 +58,23 @@ type Instruments struct {
 	MarginTradingEnabled bool   `json:"margin_trading_enabled"`
 }
 
+type OrderbookResponse struct {
+	Result OrderbookResult `json:"result"`
+}
+type OrderbookResult struct {
+	InstrumentName string `json:"instrument_name"`
+	Depth int `json:"depth"`
+	Data []OrderbookData `json:"data"`
+}
+type Orderbook [][]float64
+type OrderbookData struct {
+	Bids Orderbook `json:"bids"`
+	Asks Orderbook `json:"asks"`
+	T int64 `json:"t"`
+}
+
+
+
 func generateNonce() string {
 	return fmt.Sprintf("%d", time.Now().Unix()*1000)
 }

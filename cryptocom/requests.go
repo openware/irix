@@ -208,6 +208,9 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 	params := map[string]interface{}{
 		"instrument_name": instrument,
 	}
+	if depth == 0 {
+		depth = 150
+	}
 	if depth > 0 {
 		params["depth"] = strconv.Itoa(depth)
 	}

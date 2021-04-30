@@ -43,5 +43,3 @@ const (
 	userEndpoint   = "user"
 	marketEndpoint = "market"
 )
-
-// rate limit

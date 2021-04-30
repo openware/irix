@@ -10,7 +10,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -315,6 +317,83 @@ func TestClient_RestGetInstruments(t *testing.T) {
 			assert.Len(t, res, r.totalInstruments, r)
 			if r.totalInstruments > 0 {
 				assert.NotNil(t, res, r)
+			}
+		}
+	}
+}
+func composeOrderbook(instrumentName string, depth int, bids, asks [][]float64, t int64) OrderbookResult {
+	return OrderbookResult{
+		InstrumentName: instrumentName,
+		Depth:          depth,
+		Data: []OrderbookData{{
+			Bids: bids,
+			Asks: asks,
+			T:    t,
+		}},
+	}
+}
+
+func TestClient_RestGetOrderbook(t *testing.T) {
+	method := publicGetBook
+
+	testCases := []struct {
+		instrumentName        string
+		depth                 int
+		expectedDepth         int
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT", 0, 150, nil, 400, true, false},
+		{"BTC_", 0, 150, nil, 400, true, false},
+		{"_", 1, 1, nil, 400, true, false},
+		{"", 1, 1, nil, 400, true, false},
+		{"BTC_USDT", 151, 151, mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT", -100, -100, mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// invalid cases
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10001, nil), 500, false, true},
+		// valid cases
+		{"BTC_USDT", 0, 150, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 150, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 1, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+		{"BTC_USDT", 3, 3, mockResponseBody(1, method, 0, composeOrderbook("BTC_USDT", 3, [][]float64{{float64(1), float64(2), float64(2)}}, [][]float64{{float64(1), float64(2), float64(2)}}, time.Now().Unix())), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		fmt.Println("mock body", string(r.responseBody))
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetOrderBook(1, r.instrumentName, r.depth)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			assert.Contains(t, req.URL.Path, method)
+			assert.Equal(t, strconv.Itoa(r.expectedDepth), req.URL.Query().Get("depth"))
+			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			fmt.Println(res)
+			assert.Equal(t, r.instrumentName, res.InstrumentName)
+			for _, b := range res.Data {
+				for _, bid := range b.Bids {
+					assert.Len(t, bid, 3)
+				}
+				for _, ask := range b.Asks {
+					assert.Len(t, ask, 3)
+				}
 			}
 		}
 	}

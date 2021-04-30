@@ -58,7 +58,7 @@ func TestRequest_GetBook(t *testing.T)  {
 			if arg.depth > 0 {
 				assert.Equal(t, strconv.Itoa(arg.depth), r.Params["depth"])
 			} else {
-				assert.Empty(t, r.Params["depth"])
+				assert.Equal(t, strconv.Itoa(150), r.Params["depth"])
 			}
 			assert.NotNil(t, r.Nonce)
 		}

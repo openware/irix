@@ -32,9 +32,19 @@ func (c *Client) RestGetInstruments() (res []Instruments, err error) {
 	var result InstrumentResponse
 	_, err = c.rest.Send("GET", req, &result)
 	if err == nil {
-		for _, r := range result.Result.Instruments {
-			res = append(res, r)
-		}
+		res = result.Result.Instruments
+	}
+	return
+}
+func (c *Client) RestGetOrderBook(reqID int, instrumentName string, depth int) (res OrderbookResult, err error) {
+	req, err := c.getOrderBook(reqID, instrumentName, depth)
+	if err != nil {
+		return
+	}
+	var result OrderbookResponse
+	_, err = c.rest.Send("GET", req, &result)
+	if err == nil {
+		res = result.Result
 	}
 	return
 }
