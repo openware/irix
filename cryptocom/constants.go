@@ -4,8 +4,8 @@ package cryptocom
 const (
 	host = "api.crypto.com"
 	streamHost = "stream.crypto.com"
-	sandboxHost = "uat-api.3ona.com"
-	sandboxStreamHost = "uat-stream.3ona.com"
+	sandboxHost = "uat-api.3ona.co"
+	sandboxStreamHost = "uat-stream.3ona.co"
 	apiVersion = "v2"
 )
 
