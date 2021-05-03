@@ -7,6 +7,7 @@ package gemini
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -14,17 +15,16 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockFile = "../../testdata/http_mock/gemini/gemini.json"
+const mockFile = "./gemini.mock.json"
 
 var mockTests = true
+func configTest() (*config.ExchangeConfig, error) {
+	wd, _ := os.Getwd()
+	return config.FromFile(filepath.Join(wd, "gemini.conf.json"))
+}
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Gemini load config error", err)
-	}
-	geminiConfig, err := cfg.GetExchangeConfig("Gemini")
+	geminiConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Mock server error", err)
 	}

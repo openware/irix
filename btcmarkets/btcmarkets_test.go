@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -32,12 +33,8 @@ const (
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	bConfig, err := cfg.GetExchangeConfig("BTC Markets")
+	wd, _ := os.Getwd()
+	bConfig, err := config.FromFile(filepath.Join(wd, "btcmarkets.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

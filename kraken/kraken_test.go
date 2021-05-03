@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -37,12 +38,8 @@ const (
 // TestSetup setup func
 func TestMain(m *testing.M) {
 	k.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	krakenConfig, err := cfg.GetExchangeConfig("Kraken")
+	wd, _ := os.Getwd()
+	krakenConfig, err := config.FromFile(filepath.Join(wd, "kraken.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

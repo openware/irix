@@ -7,6 +7,7 @@ package zb
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -14,18 +15,16 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockfile = "../../testdata/http_mock/zb/zb.json"
+const mockfile = "./zb.mock.json"
 
 var mockTests = true
 
+func configTest() (*config.ExchangeConfig, error) {
+	wd, _ := os.Getwd()
+	return config.FromFile(filepath.Join(wd, "zb.conf.json"))
+}
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("ZB load config error", err)
-	}
-	var zbConfig *config.ExchangeConfig
-	zbConfig, err = cfg.GetExchangeConfig("ZB")
+	zbConfig, err := configTest()
 	if err != nil {
 		log.Fatal("ZB Setup() init error", err)
 	}

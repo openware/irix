@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -28,12 +29,8 @@ const (
 
 func TestMain(m *testing.M) {
 	y.SetDefaults()
-	yobitConfig := config.GetConfig()
-	err := yobitConfig.LoadConfig("../../testdata/configtest.json", true)
-	if err != nil {
-		log.Fatal("Yobit load config error", err)
-	}
-	conf, err := yobitConfig.GetExchangeConfig("Yobit")
+	wd, _ := os.Getwd()
+	conf, err := config.FromFile(filepath.Join(wd, "yobit.conf.json"))
 	if err != nil {
 		log.Fatal("Yobit init error", err)
 	}

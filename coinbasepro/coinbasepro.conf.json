@@ -1,0 +1,80 @@
+{
+  "name": "CoinbasePro",
+  "enabled": true,
+  "verbose": false,
+  "httpTimeout": 15000000000,
+  "websocketResponseCheckTimeout": 30000000,
+  "websocketResponseMaxLimit": 7000000000,
+  "websocketTrafficTimeout": 30000000000,
+  "websocketOrderbookBufferLimit": 5,
+  "baseCurrencies": "USD,GBP,EUR",
+  "currencyPairs": {
+    "requestFormat": {
+      "uppercase": true,
+      "delimiter": "-"
+    },
+    "configFormat": {
+      "uppercase": true,
+      "delimiter": "-"
+    },
+    "useGlobalFormat": true,
+    "assetTypes": [
+      "spot"
+    ],
+    "pairs": {
+      "spot": {
+        "enabled": "BTC-USD",
+        "available": "LTC-GBP,XLM-BTC,DASH-BTC,DAI-USDC,ZEC-USDC,XLM-EUR,ZRX-BTC,LTC-BTC,ETC-BTC,ETH-USD,XRP-EUR,BTC-USDC,REP-USD,EOS-BTC,ZEC-BTC,ETC-GBP,LINK-ETH,XRP-BTC,ZRX-USD,ETH-USDC,MANA-USDC,BTC-EUR,BCH-GBP,DNT-USDC,EOS-EUR,BCH-EUR,LTC-EUR,CVC-USDC,ETH-GBP,DASH-USD,ETH-EUR,XTZ-BTC,ZRX-EUR,BAT-ETH,BTC-GBP,ETC-USD,BAT-USDC,BCH-USD,GNT-USDC,ALGO-USD,LINK-USD,XLM-USD,ETH-BTC,EOS-USD,REP-BTC,ETH-DAI,XRP-USD,LTC-USD,ETC-EUR,BTC-USD,XTZ-USD,BCH-BTC,LOOM-USDC"
+      }
+    }
+  },
+  "api": {
+    "authenticatedSupport": false,
+    "authenticatedWebsocketApiSupport": false,
+    "endpoints": {
+      "url": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "urlSecondary": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "websocketURL": "NON_DEFAULT_HTTP_LINK_TO_WEBSOCKET_EXCHANGE_API"
+    },
+    "credentials": {
+      "key": "Key",
+      "secret": "Secret",
+      "clientID": "ClientID"
+    },
+    "credentialsValidator": {
+      "requiresKey": true,
+      "requiresSecret": true,
+      "requiresClientID": true,
+      "requiresBase64DecodeSecret": true
+    }
+  },
+  "features": {
+    "supports": {
+      "restAPI": true,
+      "restCapabilities": {
+        "autoPairUpdates": true
+      },
+      "websocketAPI": true,
+      "websocketCapabilities": {}
+    },
+    "enabled": {
+      "autoPairUpdates": true,
+      "websocketAPI": false
+    }
+  },
+  "bankAccounts": [
+    {
+      "enabled": false,
+      "bankName": "",
+      "bankAddress": "",
+      "bankPostalCode": "",
+      "bankPostalCity": "",
+      "bankCountry": "",
+      "accountName": "",
+      "accountNumber": "",
+      "swiftCode": "",
+      "iban": "",
+      "supportedCurrencies": ""
+    }
+  ]
+}

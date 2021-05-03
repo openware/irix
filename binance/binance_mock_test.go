@@ -7,6 +7,7 @@ package binance
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -14,17 +15,13 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockfile = "../../testdata/http_mock/binance/binance.json"
+const mockfile = "./binance.mock.json"
 
 var mockTests = true
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Binance load config error", err)
-	}
-	binanceConfig, err := cfg.GetExchangeConfig("Binance")
+	wd, _ := os.Getwd()
+	binanceConfig, err := config.FromFile(filepath.Join(wd, "binance.conf.json"))
 	if err != nil {
 		log.Fatal("Binance Setup() init error", err)
 	}

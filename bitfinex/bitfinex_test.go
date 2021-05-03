@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -32,12 +33,8 @@ var wsAuthExecuted bool
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Bitfinex load config error", err)
-	}
-	bfxConfig, err := cfg.GetExchangeConfig("Bitfinex")
+	wd, _ := os.Getwd()
+	bfxConfig, err := config.FromFile(filepath.Join(wd, "bitfinex.conf.json"))
 	if err != nil {
 		log.Fatal("Bitfinex Setup() init error")
 	}

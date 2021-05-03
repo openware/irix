@@ -7,6 +7,7 @@ package localbitcoins
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -18,13 +19,14 @@ const mockfile = "../../testdata/http_mock/localbitcoins/localbitcoins.json"
 
 var mockTests = true
 
+func configTest() (*config.ExchangeConfig, error) {
+	wd, _ := os.Getwd()
+	return config.FromFile(filepath.Join(wd, "localbitcoins.conf.json"))
+}
+
+
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Localbitcoins load config error", err)
-	}
-	localbitcoinsConfig, err := cfg.GetExchangeConfig("LocalBitcoins")
+	localbitcoinsConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Localbitcoins Setup() init error", err)
 	}

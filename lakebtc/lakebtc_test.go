@@ -3,6 +3,7 @@ package lakebtc
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,12 +30,8 @@ const (
 
 func TestMain(m *testing.M) {
 	l.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("LakeBTC load config error", err)
-	}
-	lakebtcConfig, err := cfg.GetExchangeConfig("LakeBTC")
+	wd, _ := os.Getwd()
+	lakebtcConfig, err := config.FromFile(filepath.Join(wd, "lakebtc.conf.json"))
 	if err != nil {
 		log.Fatal("LakeBTC Setup() init error", err)
 	}
