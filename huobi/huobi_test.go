@@ -1,9 +1,10 @@
 package huobi
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -36,8 +37,7 @@ var wsSetupRan bool
 func TestMain(m *testing.M) {
 	h.SetDefaults()
 	wd, _ := os.Getwd()
-	hConfig, err := config.FromFile(fmt.Sprintf("%s/%s", wd, "houbi.conf.json"))
-	fmt.Println(hConfig, err)
+	hConfig, err := config.FromFile(path.Join(wd, "houbi.conf.json"))
 	if err != nil {
 		log.Fatal("Huobi Setup() init error", err)
 	}
