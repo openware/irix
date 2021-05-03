@@ -1,6 +1,7 @@
 package huobi
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -34,14 +35,11 @@ var wsSetupRan bool
 
 func TestMain(m *testing.M) {
 	h.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
+	wd, _ := os.Getwd()
+	hConfig, err := config.FromFile(fmt.Sprintf("%s/%s", wd, "houbi.conf.json"))
+	fmt.Println(hConfig, err)
 	if err != nil {
-		log.Fatal("Huobi load config error", err)
-	}
-	hConfig, err := cfg.GetExchangeConfig("Huobi")
-	if err != nil {
-		log.Fatal("Huobi Setup() init error")
+		log.Fatal("Huobi Setup() init error", err)
 	}
 	hConfig.API.AuthenticatedSupport = true
 	hConfig.API.AuthenticatedWebsocketSupport = true
