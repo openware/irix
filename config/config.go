@@ -14,7 +14,7 @@ const (
 	FXProviderFixer                      = "fixer"
 	EncryptedFile                        = "config.dat"
 	File                                 = "config.json"
-	TestFile                             = "../configtest.json"
+	TestFile                             = "./sample.conf.json"
 	fileEncryptionPrompt                 = 0
 	fileEncryptionEnabled                = 1
 	fileEncryptionDisabled               = -1
