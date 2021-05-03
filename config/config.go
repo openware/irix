@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -79,7 +80,7 @@ func fromByte(by []byte) (res *ExchangeConfig, err error)  {
 
 //FromReader read config from io.ReadCloser
 func FromReader(data io.ReadCloser) (res *ExchangeConfig, err error)  {
-	read, err := io.ReadAll(data)
+	read, err := ioutil.ReadAll(data)
 	if err != nil {
 		return
 	}
