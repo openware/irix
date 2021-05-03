@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
