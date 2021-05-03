@@ -3,9 +3,6 @@ set -xe
 
 ROOT_DIR=$PWD
 
-go test -cover -race ./config...
-go vet ./config...
-
 for d in */ ; do
     if [ -f "$d/go.mod" ]; then
 	cd $d
