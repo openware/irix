@@ -243,3 +243,17 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 	}
 	return
 }
+func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
+	params := map[string]interface{}{}
+	if instrumentName != "" {
+		if err = validInstrument(instrumentName); err != nil {
+			return
+		}
+		params["instrument_name"] = instrumentName
+	}
+	req = &Request{
+		Method:    publicGetTicker,
+		Params:    params,
+	}
+	return
+}

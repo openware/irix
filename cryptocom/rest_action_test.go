@@ -29,35 +29,6 @@ func (m *mockHTTPClientError) Post(endpoint, contentType string, body io.Reader)
 func (m *mockHTTPClientError) Get(endpoint string) (resp *http.Response, err error) {
 	return nil, errors.New("")
 }
-func mockResponseBody(id int, method string, code int, result interface{}) []byte {
-	b, _ := json.Marshal(map[string]interface {
-	}{
-		"id":     id,
-		"method": method,
-		"code":   code,
-		"result": result,
-	})
-	return b
-}
-func mockOrderbook(instrumentName string, depth int, bids, asks [][]float64, t int64) OrderbookResult {
-	return OrderbookResult{
-		InstrumentName: instrumentName,
-		Depth:          depth,
-		Data: []OrderbookData{{
-			Bids: bids,
-			Asks: asks,
-			T:    t,
-		}},
-	}
-}
-func mockCandlestick(instrumentName string, period Interval, depth int, data []Candlestick) CandlestickResult {
-	return CandlestickResult{
-		InstrumentName: instrumentName,
-		Depth:          depth,
-		Interval:       period.Encode(),
-		Data:           data,
-	}
-}
 
 type testRestFunc func(client *Client) (Response, error)
 
@@ -459,6 +430,99 @@ func TestClient_RestGetCandlestick(t *testing.T) {
 		} else if !r.shouldErrorValidation && !r.shouldError {
 			assert.Nil(t, err, r)
 			assert.Equal(t, r.instrumentName, res.InstrumentName)
+			assert.NotNil(t, res.Data)
+		}
+	}
+}
+
+func TestClient_GetTicker(t *testing.T)  {
+	method := publicGetTicker
+
+	testCases := []struct {
+		instrumentName        string
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT",  nil, 400, true, false},
+		{"BTC_",  nil, 400, true, false},
+		{"_",  nil, 400, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// invalid cases
+		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		// valid cases
+		{"",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+			Instrument: "BTC_USDT",
+			Bid:        0,
+			Ask:        0,
+			Trade:      0,
+			Timestamp:  0,
+			Volume:     0,
+			Highest:    0,
+			Lowest:     0,
+			Change:     0,
+		}, Ticker{
+			Instrument: "ETC_BTC",
+			Bid:        0,
+			Ask:        0,
+			Trade:      0,
+			Timestamp:  0,
+			Volume:     0,
+			Highest:    0,
+			Lowest:     0,
+			Change:     0,
+		})), 200, false, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+			Instrument: "BTC_USDT",
+			Bid:        1,
+			Ask:        1,
+			Trade:      1,
+			Timestamp:  time.Now().Unix(),
+			Volume:     1,
+			Highest:    1,
+			Lowest:     1,
+			Change:     1,
+		})), 200, false, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+			Instrument: "BTC_USDT",
+			Bid:        1,
+			Ask:        1,
+			Trade:      1,
+			Timestamp:  time.Now().Unix(),
+			Volume:     1,
+			Highest:    1,
+			Lowest:     1,
+			Change:     1,
+		})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetTicker(r.instrumentName)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			assert.Equal(t, "GET", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
 			assert.NotNil(t, res.Data)
 		}
 	}

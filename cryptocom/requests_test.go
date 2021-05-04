@@ -103,3 +103,34 @@ func TestRequest_GetCandlestick(t *testing.T)  {
 		}
 	}
 }
+
+func TestGetTicker(t *testing.T)  {
+	testTable := []struct{
+		instrumentName string
+		shouldError bool
+	}{
+		{"_", true},
+		{"BTC_", true},
+		{"_USDT", true},
+		// valid inputs
+		{"", false},
+		{"BTC_USDT", false},
+		{"BTC_USDT", false},
+		{"BTC_USDT", false},
+	}
+	for _, arg := range testTable {
+		r, err := cl.getTicker(arg.instrumentName)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, publicGetTicker, r.Method, arg)
+			if arg.instrumentName != "" {
+				assert.Equal(t, arg.instrumentName, r.Params["instrument_name"], arg)
+			} else {
+				assert.Nil(t, r.Params["instrument_name"])
+			}
+		}
+	}
+}

@@ -85,11 +85,28 @@ type CandlestickResult struct {
 
 type Candlestick struct {
 	Time   int64 `json:"t"`
-	Open   int `json:"o"`
-	High   int `json:"h"`
-	Low    int `json:"l"`
-	Close  int `json:"c"`
-	Volume int `json:"v"`
+	Open   int   `json:"o"`
+	High   int   `json:"h"`
+	Low    int   `json:"l"`
+	Close  int   `json:"c"`
+	Volume int   `json:"v"`
+}
+type TickerResponse struct {
+	Result TickerResult `json:"result"`
+}
+type TickerResult struct {
+	Data []Ticker `json:"data"`
+}
+type Ticker struct {
+	Instrument string  `json:"i"`
+	Bid        int     `json:"b"`
+	Ask        int     `json:"k"`
+	Trade      float64 `json:"a"`
+	Timestamp  int64   `json:"t"`
+	Volume     int     `json:"v"`
+	Highest    float64 `json:"h"`
+	Lowest     int     `json:"l"`
+	Change     float64 `json:"c"`
 }
 
 func generateNonce() string {
