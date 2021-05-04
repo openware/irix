@@ -36,3 +36,8 @@ func mockTicker(data ...Ticker) TickerResult {
 		Data: data,
 	}
 }
+func mockPublicTrades(data ...PublicTrade) PublicTradeResult {
+	return PublicTradeResult{
+		Data: data,
+	}
+}

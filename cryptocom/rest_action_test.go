@@ -527,3 +527,84 @@ func TestClient_GetTicker(t *testing.T)  {
 		}
 	}
 }
+
+func TestClient_GetPublicTrades(t *testing.T)  {
+	method := publicGetTrades
+
+	testCases := []struct {
+		instrumentName        string
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT",  nil, 400, true, false},
+		{"BTC_",  nil, 400, true, false},
+		{"_",  nil, 400, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// invalid cases
+		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		// valid cases
+		{"",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+			Instrument: "BTC_USDT",
+			Quantity:   1,
+			Price:      0.1,
+			Side:       "BUY",
+			Timestamp:  time.Now().Unix(),
+			TradeID:    1,
+		}, PublicTrade{
+			Instrument: "ETC_USDT",
+			Quantity:   1,
+			Price:      0.2,
+			Side:       "SELL",
+			Timestamp:  time.Now().Unix(),
+			TradeID:    2,
+		})), 200, false, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+			Instrument: "BTC_USDT",
+			Quantity:   1,
+			Price:      0.2,
+			Side:       "SELL",
+			Timestamp:  time.Now().Unix(),
+			TradeID:    2,
+		})), 200, false, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+			Instrument: "BTC_USDT",
+			Quantity:   1,
+			Price:      0.2,
+			Side:       "BUY",
+			Timestamp:  time.Now().Unix(),
+			TradeID:    2,
+		})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetPublicTrades(r.instrumentName)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			assert.Equal(t, "GET", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			assert.NotNil(t, res.Data)
+		}
+	}
+}

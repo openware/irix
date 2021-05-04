@@ -72,6 +72,18 @@ func (c *Client) RestGetTicker(instrumentName string) (res TickerResult, err err
 	}
 	return
 }
+func (c *Client) RestGetPublicTrades(instrumentName string) (res PublicTradeResult, err error) {
+	req, err := c.getPublicTrades(instrumentName)
+	if err != nil {
+		return
+	}
+	var result PublicTradeResponse
+	_, err = c.rest.Send("GET", req, &result)
+	if err == nil {
+		res = result.Result
+	}
+	return
+}
 
 func (c *Client) send(r *Request) (Response, error) {
 	body, err := r.Encode()

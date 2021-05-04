@@ -108,6 +108,20 @@ type Ticker struct {
 	Lowest     int     `json:"l"`
 	Change     float64 `json:"c"`
 }
+type PublicTradeResponse struct {
+	Result PublicTradeResult `json:"result"`
+}
+type PublicTradeResult struct {
+	Data []PublicTrade `json:"data"`
+}
+type PublicTrade struct {
+	Instrument string  `json:"i"`
+	Quantity   int     `json:"q"`
+	Price      float64 `json:"p"`
+	Side       string  `json:"s"`
+	Timestamp  int64   `json:"t"`
+	TradeID    int     `json:"d"`
+}
 
 func generateNonce() string {
 	return fmt.Sprintf("%d", time.Now().Unix()*1000)

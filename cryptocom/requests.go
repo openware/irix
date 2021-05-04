@@ -257,3 +257,17 @@ func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
 	}
 	return
 }
+func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error) {
+	params := map[string]interface{}{}
+	if instrumentName != "" {
+		if err = validInstrument(instrumentName); err != nil {
+			return
+		}
+		params["instrument_name"] = instrumentName
+	}
+	req = &Request{
+		Method:    publicGetTrades,
+		Params:    params,
+	}
+	return
+}
