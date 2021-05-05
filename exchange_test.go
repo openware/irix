@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -347,13 +348,8 @@ func TestSetAPICredentialDefaults(t *testing.T) {
 }
 
 func TestSetAutoPairDefaults(t *testing.T) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig(config.TestFile, true)
-	if err != nil {
-		t.Fatalf("TestSetAutoPairDefaults failed to load config file. Error: %s", err)
-	}
 
-	exch, err := cfg.GetExchangeConfig("Bitstamp")
+	exch, err := config.FromFile(filepath.Join("config", config.TestFile))
 	if err != nil {
 		t.Fatalf("TestSetAutoPairDefaults load config failed. Error %s", err)
 	}
@@ -367,11 +363,6 @@ func TestSetAutoPairDefaults(t *testing.T) {
 	}
 
 	exch.Features.Supports.RESTCapabilities.AutoPairUpdates = false
-
-	exch, err = cfg.GetExchangeConfig("Bitstamp")
-	if err != nil {
-		t.Fatalf("TestSetAutoPairDefaults load config failed. Error %s", err)
-	}
 
 	if exch.Features.Supports.RESTCapabilities.AutoPairUpdates {
 		t.Fatal("TestSetAutoPairDefaults Incorrect value")
@@ -1467,13 +1458,8 @@ func TestSetPairs(t *testing.T) {
 }
 
 func TestUpdatePairs(t *testing.T) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig(config.TestFile, true)
-	if err != nil {
-		t.Fatal("TestUpdatePairs failed to load config")
-	}
 
-	exchCfg, err := cfg.GetExchangeConfig(defaultTestExchange)
+	exchCfg, err := config.FromFile(filepath.Join("config", config.TestFile))
 	if err != nil {
 		t.Fatal("TestUpdatePairs failed to load config")
 	}

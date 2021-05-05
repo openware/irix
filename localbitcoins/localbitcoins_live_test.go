@@ -9,19 +9,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openware/irix/config"
 	"github.com/openware/irix/sharedtestvalues"
 )
 
 var mockTests = false
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("LocalBitcoins load config error", err)
-	}
-	localbitcoinsConfig, err := cfg.GetExchangeConfig("LocalBitcoins")
+	localbitcoinsConfig, err := configTest()
 	if err != nil {
 		log.Fatal("LocalBitcoins Setup() init error", err)
 	}

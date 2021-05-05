@@ -10,19 +10,13 @@ import (
 	"testing"
 
 	exchange "github.com/openware/irix"
-	"github.com/openware/irix/config"
 	"github.com/openware/irix/sharedtestvalues"
 )
 
 var mockTests = false
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Gemini load config error", err)
-	}
-	geminiConfig, err := cfg.GetExchangeConfig("Gemini")
+	geminiConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Gemini Setup() init error", err)
 	}

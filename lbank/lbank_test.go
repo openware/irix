@@ -3,6 +3,7 @@ package lbank
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -27,12 +28,8 @@ var l Lbank
 
 func TestMain(m *testing.M) {
 	l.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	lbankConfig, err := cfg.GetExchangeConfig("Lbank")
+	wd, _ := os.Getwd()
+	lbankConfig, err := config.FromFile(filepath.Join(wd, "lbank.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -32,12 +33,8 @@ var b BTSE
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	btseConfig, err := cfg.GetExchangeConfig("BTSE")
+	wd, _ := os.Getwd()
+	btseConfig, err := config.FromFile(filepath.Join(wd, "btse.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

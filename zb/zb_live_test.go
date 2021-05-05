@@ -9,19 +9,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openware/irix/config"
 	"github.com/openware/irix/sharedtestvalues"
 )
 
 var mockTests = false
 
+
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("ZB load config error", err)
-	}
-	zbConfig, err := cfg.GetExchangeConfig("ZB")
+	zbConfig, err := configTest()
 	if err != nil {
 		log.Fatal("ZB Setup() init error", err)
 	}

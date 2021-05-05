@@ -7,6 +7,7 @@ package poloniex
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -18,13 +19,13 @@ const mockfile = "../../testdata/http_mock/poloniex/poloniex.json"
 
 var mockTests = true
 
+func configTest() (*config.ExchangeConfig, error) {
+	wd, _ := os.Getwd()
+	return config.FromFile(filepath.Join(wd, "poloniex.conf.json"))
+}
+
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Poloniex load config error", err)
-	}
-	poloniexConfig, err := cfg.GetExchangeConfig("Poloniex")
+	poloniexConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Poloniex Setup() init error", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -50,13 +51,8 @@ func TestSetRealOrderDefaults(t *testing.T) {
 func TestMain(m *testing.M) {
 	o.SetDefaults()
 	o.ExchangeName = OKGroupExchange
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Okex load config error", err)
-	}
-
-	okexConfig, err := cfg.GetExchangeConfig(OKGroupExchange)
+	wd, _ := os.Getwd()
+	okexConfig, err := config.FromFile(filepath.Join(wd, "okex.conf.json"))
 	if err != nil {
 		log.Fatalf("%v Setup() init error", OKGroupExchange)
 	}

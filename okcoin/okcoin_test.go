@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -49,12 +50,8 @@ func TestSetRealOrderDefaults(t *testing.T) {
 func TestMain(m *testing.M) {
 	o.SetDefaults()
 	o.ExchangeName = OKGroupExchange
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Okcoin load config error", err)
-	}
-	okcoinConfig, err := cfg.GetExchangeConfig(OKGroupExchange)
+	wd, _ := os.Getwd()
+	okcoinConfig, err := config.FromFile(filepath.Join(wd, "okcoin.conf.json"))
 	if err != nil {
 		log.Fatalf("%v Setup() init error", OKGroupExchange)
 	}

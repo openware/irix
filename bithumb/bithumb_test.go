@@ -3,6 +3,7 @@ package bithumb
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,12 +30,8 @@ var b Bithumb
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Bithumb load config error", err)
-	}
-	bitConfig, err := cfg.GetExchangeConfig("Bithumb")
+	wd, _ := os.Getwd()
+	bitConfig, err := config.FromFile(filepath.Join(wd, "bithumb.conf.json"))
 	if err != nil {
 		log.Fatal("Bithumb Setup() init error")
 	}

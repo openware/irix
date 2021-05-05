@@ -9,19 +9,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openware/irix/config"
 	"github.com/openware/irix/sharedtestvalues"
 )
 
 var mockTests = false
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Poloniex load config error", err)
-	}
-	poloniexConfig, err := cfg.GetExchangeConfig("Poloniex")
+	poloniexConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Poloniex Setup() init error", err)
 	}
