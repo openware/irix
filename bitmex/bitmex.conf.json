@@ -1,0 +1,112 @@
+{
+  "name": "Bitmex",
+  "enabled": true,
+  "verbose": false,
+  "httpTimeout": 15000000000,
+  "websocketResponseCheckTimeout": 30000000,
+  "websocketResponseMaxLimit": 7000000000,
+  "websocketTrafficTimeout": 30000000000,
+  "websocketOrderbookBufferLimit": 5,
+  "baseCurrencies": "USD",
+  "currencyPairs": {
+    "assetTypes": [
+      "perpetualcontract",
+      "futures",
+      "downsideprofitcontract",
+      "upsideprofitcontract"
+    ],
+    "pairs": {
+      "downsideprofitcontract": {
+        "enabled": "XBT7D_D95",
+        "available": "XBT7D_D95",
+        "requestFormat": {
+          "uppercase": true,
+          "delimiter": "_"
+        },
+        "configFormat": {
+          "uppercase": true,
+          "delimiter": "_"
+        }
+      },
+      "futures": {
+        "enabled": "BCHZ19",
+        "available": "XRPZ19,BCHZ19,ADAZ19,EOSZ19,TRXZ19,XBTZ19,ETHZ19,LTCZ19",
+        "requestFormat": {
+          "uppercase": true
+        },
+        "configFormat": {
+          "uppercase": true
+        }
+      },
+      "perpetualcontract": {
+        "enabled": "ETHUSD",
+        "available": "XBTUSD,ETHUSD",
+        "requestFormat": {
+          "uppercase": true
+        },
+        "configFormat": {
+          "uppercase": true
+        }
+      },
+      "upsideprofitcontract": {
+        "enabled": "XBT7D_U105",
+        "available": "XBT7D_U105",
+        "requestFormat": {
+          "uppercase": true,
+          "delimiter": "_"
+        },
+        "configFormat": {
+          "uppercase": true,
+          "delimiter": "_"
+        }
+      }
+    }
+  },
+  "api": {
+    "authenticatedSupport": false,
+    "authenticatedWebsocketApiSupport": false,
+    "endpoints": {
+      "url": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "urlSecondary": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "websocketURL": "NON_DEFAULT_HTTP_LINK_TO_WEBSOCKET_EXCHANGE_API"
+    },
+    "credentials": {
+      "key": "Key",
+      "secret": "Secret"
+    },
+    "credentialsValidator": {
+      "requiresKey": true,
+      "requiresSecret": true
+    }
+  },
+  "features": {
+    "supports": {
+      "restAPI": true,
+      "restCapabilities": {
+        "tickerBatching": true,
+        "autoPairUpdates": true
+      },
+      "websocketAPI": true,
+      "websocketCapabilities": {}
+    },
+    "enabled": {
+      "autoPairUpdates": true,
+      "websocketAPI": false
+    }
+  },
+  "bankAccounts": [
+    {
+      "enabled": false,
+      "bankName": "",
+      "bankAddress": "",
+      "bankPostalCode": "",
+      "bankPostalCity": "",
+      "bankCountry": "",
+      "accountName": "",
+      "accountNumber": "",
+      "swiftCode": "",
+      "iban": "",
+      "supportedCurrencies": ""
+    }
+  ]
+}

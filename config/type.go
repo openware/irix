@@ -8,11 +8,6 @@ import (
 	"github.com/openware/pkg/currency"
 )
 
-type Config struct {
-	Name      string           `json:"name"`
-	Exchanges []ExchangeConfig `json:"exchanges"`
-}
-
 type ExchangeConfig struct {
 	Name                          string                 `json:"name"`
 	Enabled                       bool                   `json:"enabled"`

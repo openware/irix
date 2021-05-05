@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -33,12 +34,8 @@ const (
 
 func TestMain(m *testing.M) {
 	h.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("HitBTC load config error", err)
-	}
-	hitbtcConfig, err := cfg.GetExchangeConfig("HitBTC")
+	wd, _ := os.Getwd()
+	hitbtcConfig, err := config.FromFile(filepath.Join(wd, "hitbtc.conf.json"))
 	if err != nil {
 		log.Fatal("HitBTC Setup() init error")
 	}

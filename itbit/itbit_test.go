@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,12 +30,8 @@ const (
 
 func TestMain(m *testing.M) {
 	i.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Itbit load config error", err)
-	}
-	itbitConfig, err := cfg.GetExchangeConfig("ITBIT")
+	wd, _ := os.Getwd()
+	itbitConfig, err := config.FromFile(filepath.Join(wd, "itbit.conf.json"))
 	if err != nil {
 		log.Fatal("Itbit Setup() init error")
 	}

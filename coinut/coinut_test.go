@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -32,12 +33,8 @@ const (
 
 func TestMain(m *testing.M) {
 	c.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Coinut load config error", err)
-	}
-	coinutCfg, err := cfg.GetExchangeConfig("COINUT")
+	wd, _ := os.Getwd()
+	coinutCfg, err := config.FromFile(filepath.Join(wd, "coinut.conf.json"))
 	if err != nil {
 		log.Fatal("Coinut Setup() init error")
 	}

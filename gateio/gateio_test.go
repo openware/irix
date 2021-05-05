@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -35,12 +36,9 @@ var wsSetupRan bool
 
 func TestMain(m *testing.M) {
 	g.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("GateIO load config error", err)
-	}
-	gConf, err := cfg.GetExchangeConfig("GateIO")
+	wd, _ := os.Getwd()
+
+	gConf, err := config.FromFile(filepath.Join(wd, "gateio.conf.json"))
 	if err != nil {
 		log.Fatal("GateIO Setup() init error")
 	}

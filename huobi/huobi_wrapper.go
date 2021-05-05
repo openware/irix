@@ -272,9 +272,7 @@ func (h *HUOBI) Run() {
 	}
 
 	if common.StringDataContains(h.BaseCurrencies.Strings(), currency.CNY.String()) {
-		cfg := config.GetConfig()
-		var exchCfg *config.ExchangeConfig
-		exchCfg, err = cfg.GetExchangeConfig(h.Name)
+		exchCfg, err := config.FromFile("./huobi.conf.json")
 		if err != nil {
 			log.Errorf(log.ExchangeSys,
 				"%s failed to get exchange config. %s\n",

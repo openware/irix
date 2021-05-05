@@ -3,6 +3,7 @@ package bitflyer
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -26,12 +27,8 @@ const (
 var b Bitflyer
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Bitflyer load config error", err)
-	}
-	bitflyerConfig, err := cfg.GetExchangeConfig("Bitflyer")
+	wd, _ := os.Getwd()
+	bitflyerConfig, err := config.FromFile(filepath.Join(wd, "bitflyer.conf.json"))
 	if err != nil {
 		log.Fatal("bitflyer Setup() init error")
 	}

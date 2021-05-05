@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -32,12 +33,8 @@ var b Bitmex
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Bitmex load config error", err)
-	}
-	bitmexConfig, err := cfg.GetExchangeConfig("Bitmex")
+	wd, _ := os.Getwd()
+	bitmexConfig, err := config.FromFile(filepath.Join(wd, "bitmex.conf.json"))
 	if err != nil {
 		log.Fatal("Bitmex Setup() init error")
 	}

@@ -3,6 +3,7 @@ package exmo
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -28,12 +29,8 @@ var (
 
 func TestMain(m *testing.M) {
 	e.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Exmo load config error", err)
-	}
-	exmoConf, err := cfg.GetExchangeConfig("EXMO")
+	wd, _ := os.Getwd()
+	exmoConf, err := config.FromFile(filepath.Join(wd, "exmo.conf.json"))
 	if err != nil {
 		log.Fatal("Exmo Setup() init error")
 	}

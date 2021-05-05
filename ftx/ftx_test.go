@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -40,13 +41,8 @@ var f FTX
 
 func TestMain(m *testing.M) {
 	f.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	exchCfg, err := cfg.GetExchangeConfig("FTX")
+	wd, _ := os.Getwd()
+	exchCfg, err := config.FromFile(filepath.Join(wd, "ftx.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package coinbene
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -28,12 +29,8 @@ var c Coinbene
 
 func TestMain(m *testing.M) {
 	c.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	coinbeneConfig, err := cfg.GetExchangeConfig("Coinbene")
+	wd, _ := os.Getwd()
+	coinbeneConfig, err := config.FromFile(filepath.Join(wd, "coinbene.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

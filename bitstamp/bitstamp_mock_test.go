@@ -7,6 +7,7 @@ package bitstamp
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openware/irix/config"
@@ -16,15 +17,15 @@ import (
 
 const mockfile = "../../testdata/http_mock/bitstamp/bitstamp.json"
 
+func configTest() (*config.ExchangeConfig, error) {
+	wd, _ := os.Getwd()
+	return config.FromFile(filepath.Join(wd, "bitstamp.conf.json"))
+}
+
 var mockTests = true
 
 func TestMain(m *testing.M) {
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("Bitstamp load config error", err)
-	}
-	bitstampConfig, err := cfg.GetExchangeConfig("Bitstamp")
+	bitstampConfig, err := configTest()
 	if err != nil {
 		log.Fatal("Bitstamp Setup() init error", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -38,12 +39,8 @@ const (
 
 func TestMain(m *testing.M) {
 	c.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal("coinbasepro load config error", err)
-	}
-	gdxConfig, err := cfg.GetExchangeConfig("CoinbasePro")
+	wd, _ := os.Getwd()
+	gdxConfig, err := config.FromFile(filepath.Join(wd, "coinbasepro.conf.json"))
 	if err != nil {
 		log.Fatal("coinbasepro Setup() init error")
 	}

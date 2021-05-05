@@ -3,6 +3,7 @@ package bittrex
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,12 +30,8 @@ var b Bittrex
 
 func TestMain(m *testing.M) {
 	b.SetDefaults()
-	cfg := config.GetConfig()
-	err := cfg.LoadConfig("../configtest.json", true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	bConfig, err := cfg.GetExchangeConfig("Bittrex")
+	wd, _ := os.Getwd()
+	bConfig, err := config.FromFile(filepath.Join(wd, "bittrex.conf.json"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,0 +1,78 @@
+{
+  "name": "Bithumb",
+  "enabled": true,
+  "verbose": false,
+  "httpTimeout": 15000000000,
+  "websocketResponseCheckTimeout": 30000000,
+  "websocketResponseMaxLimit": 7000000000,
+  "websocketTrafficTimeout": 30000000000,
+  "websocketOrderbookBufferLimit": 5,
+  "baseCurrencies": "KRW",
+  "currencyPairs": {
+    "requestFormat": {
+      "uppercase": true
+    },
+    "configFormat": {
+      "uppercase": true,
+      "index": "KRW"
+    },
+    "useGlobalFormat": true,
+    "assetTypes": [
+      "spot"
+    ],
+    "pairs": {
+      "spot": {
+        "enabled": "BTCKRW,ETHKRW,LTCKRW,ETCKRW,XRPKRW,BCHKRW,QTUMKRW,BTGKRW,EOSKRW",
+        "available": "BHPKRW,STEEMKRW,GTOKRW,ETCKRW,STRATKRW,FXKRW,LTCKRW,MIXKRW,THETAKRW,QTUMKRW,ADAKRW,MCOKRW,INSKRW,RDNKRW,CONKRW,FABKRW,ETHKRW,HDACKRW,BTCKRW,POWRKRW,CMTKRW,LBAKRW,ETHOSKRW,HCKRW,ETZKRW,PPTKRW,XVGKRW,WTCKRW,TMTGKRW,LOOMKRW,WETKRW,ABTKRW,ITCKRW,GXCKRW,ORBSKRW,ICXKRW,BSVKRW,MXCKRW,MITHKRW,AEKRW,SALTKRW,ARNKRW,TRUEKRW,ENJKRW,GNTKRW,PLYKRW,REPKRW,ZRXKRW,BTGKRW,APISKRW,QKCKRW,LRCKRW,DVPKRW,DADKRW,CHRKRW,BCHKRW,NPXSKRW,PIVXKRW,AMOKRW,RNTKRW,XEMKRW,FCTKRW,WOMKRW,WAXPKRW,DACKRW,OMGKRW,PCMKRW,CROKRW,FNBKRW,ANKRKRW,EOSKRW,KNCKRW,OCNKRW,MTLKRW,XSRKRW,VALORKRW,TRVKRW,AUTOKRW,HYCKRW,AOAKRW,BTTKRW,MBLKRW,VETKRW,XRPKRW,ZILKRW,ELFKRW,LAMBKRW,POLYKRW,IOSTKRW,BZNTKRW,CTXCKRW,BATKRW,FZZKRW,PAYKRW,BCDKRW,SNTKRW,WAVESKRW,XLMKRW,LINKKRW,OGOKRW,WICCKRW,TRXKRW"
+      }
+    }
+  },
+  "api": {
+    "authenticatedSupport": false,
+    "authenticatedWebsocketApiSupport": false,
+    "endpoints": {
+      "url": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "urlSecondary": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "websocketURL": "NON_DEFAULT_HTTP_LINK_TO_WEBSOCKET_EXCHANGE_API"
+    },
+    "credentials": {
+      "key": "Key",
+      "secret": "Secret",
+      "clientID": "ClientID"
+    },
+    "credentialsValidator": {
+      "requiresKey": true,
+      "requiresSecret": true
+    }
+  },
+  "features": {
+    "supports": {
+      "restAPI": true,
+      "restCapabilities": {
+        "tickerBatching": true,
+        "autoPairUpdates": true
+      },
+      "websocketAPI": false,
+      "websocketCapabilities": {}
+    },
+    "enabled": {
+      "autoPairUpdates": true,
+      "websocketAPI": false
+    }
+  },
+  "bankAccounts": [
+    {
+      "enabled": false,
+      "bankName": "",
+      "bankAddress": "",
+      "bankPostalCode": "",
+      "bankPostalCity": "",
+      "bankCountry": "",
+      "accountName": "",
+      "accountNumber": "",
+      "swiftCode": "",
+      "iban": "",
+      "supportedCurrencies": ""
+    }
+  ]
+}

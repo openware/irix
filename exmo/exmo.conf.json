@@ -1,0 +1,79 @@
+{
+  "name": "EXMO",
+  "enabled": true,
+  "verbose": false,
+  "httpTimeout": 15000000000,
+  "websocketResponseCheckTimeout": 30000000,
+  "websocketResponseMaxLimit": 7000000000,
+  "websocketTrafficTimeout": 30000000000,
+  "websocketOrderbookBufferLimit": 5,
+  "baseCurrencies": "USD,EUR,RUB,PLN,UAH",
+  "currencyPairs": {
+    "requestFormat": {
+      "uppercase": true,
+      "delimiter": "_",
+      "separator": ","
+    },
+    "configFormat": {
+      "uppercase": true,
+      "delimiter": "_"
+    },
+    "useGlobalFormat": true,
+    "assetTypes": [
+      "spot"
+    ],
+    "pairs": {
+      "spot": {
+        "enabled": "BTC_USD,LTC_USD",
+        "available": "BCH_RUB,DASH_RUB,EOS_USD,ETH_TRY,GNT_ETH,LTC_USD,PTI_USDT,XRP_BTC,EXM_BTC,BTG_BTC,ETC_RUB,BTG_USD,NEO_RUB,XMR_BTC,ZRX_ETH,MNX_BTC,USDC_BTC,XRP_EUR,SMART_USD,EOS_BTC,MNX_ETH,ZEC_BTC,BCH_USD,WAVES_USD,TRX_BTC,XRP_TRY,DASH_USD,DOGE_USD,ETZ_USDT,GUSD_USD,MNC_BTC,ZEC_USD,DCR_BTC,DXT_USD,PTI_RUB,XMR_ETH,ZRX_USD,DAI_RUB,MNC_USD,XLM_TRY,DAI_BTC,BTC_EUR,LTC_EUR,OMG_BTC,PTI_EOS,SMART_RUB,XTZ_USD,HP_EXM,ADA_USD,OMG_ETH,QTUM_USD,TRX_RUB,USDC_ETH,USDC_USDT,USD_RUB,BTC_UAH,BCH_USDT,ETH_PLN,KICK_RUB,LSK_RUB,SMART_BTC,XMR_UAH,XRP_USD,GUSD_BTC,QTUM_ETH,USDT_EUR,BTC_RUB,DCR_UAH,ETH_RUB,DOGE_BTC,ETZ_BTC,INK_USD,LTC_UAH,BTT_UAH,BTC_USDT,MNC_ETH,XTZ_ETH,BTC_TRY,DXT_BTC,KICK_USDT,OMG_USD,WAVES_BTC,XLM_BTC,BTCZ_BTC,GNT_BTC,LSK_BTC,LTC_RUB,NEO_BTC,XEM_UAH,XMR_USD,ZAG_BTC,GAS_USD,LTC_BTC,TRX_UAH,XEM_EUR,XMR_RUB,XTZ_RUB,ETZ_ETH,ETC_BTC,GUSD_RUB,INK_BTC,LSK_USD,MNX_USD,SMART_EUR,VLX_BTC,BCH_ETH,XMR_EUR,ADA_ETH,QTUM_BTC,XEM_USD,ATMCASH_BTC,ADA_BTC,ETH_EUR,TRX_USD,USDC_USD,BCH_BTC,ETH_UAH,KICK_BTC,WAVES_RUB,XEM_BTC,ETH_BTC,BCH_EUR,BTT_BTC,ROOBEE_BTC,XLM_USD,XRP_ETH,ETH_USD,MKR_DAI,XTZ_BTC,DAI_USD,BCH_UAH,INK_ETH,KICK_ETH,MKR_BTC,NEO_USD,XRP_USDT,ZEC_EUR,BTC_USD,XRP_RUB,EOS_EUR,ETH_USDT,USDT_UAH,XRP_UAH,ZEC_RUB,HP_BTC,BTT_RUB,DAI_ETH,DASH_UAH,DASH_USDT,ETH_LTC,GAS_BTC,USDT_USD,BTG_ETH,XLM_RUB,WAVES_ETH,USDT_RUB,ZRX_BTC,DASH_BTC,DCR_RUB,ETC_USD,HB_BTC,PTI_BTC,BTC_PLN"
+      }
+    }
+  },
+  "api": {
+    "authenticatedSupport": false,
+    "authenticatedWebsocketApiSupport": false,
+    "endpoints": {
+      "url": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "urlSecondary": "NON_DEFAULT_HTTP_LINK_TO_EXCHANGE_API",
+      "websocketURL": "NON_DEFAULT_HTTP_LINK_TO_WEBSOCKET_EXCHANGE_API"
+    },
+    "credentials": {
+      "key": "Key",
+      "secret": "Secret"
+    },
+    "credentialsValidator": {
+      "requiresKey": true,
+      "requiresSecret": true
+    }
+  },
+  "features": {
+    "supports": {
+      "restAPI": true,
+      "restCapabilities": {
+        "tickerBatching": true,
+        "autoPairUpdates": true
+      },
+      "websocketAPI": false,
+      "websocketCapabilities": {}
+    },
+    "enabled": {
+      "autoPairUpdates": true,
+      "websocketAPI": false
+    }
+  },
+  "bankAccounts": [
+    {
+      "enabled": false,
+      "bankName": "",
+      "bankAddress": "",
+      "bankPostalCode": "",
+      "bankPostalCity": "",
+      "bankCountry": "",
+      "accountName": "",
+      "accountNumber": "",
+      "swiftCode": "",
+      "iban": "",
+      "supportedCurrencies": ""
+    }
+  ]
+}
