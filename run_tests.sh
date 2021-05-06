@@ -15,7 +15,7 @@ for d in */ ; do
 	go mod download
 
     fi
-  go test .
+  go test -cover .
 	cd $ROOT_DIR
 done
 
