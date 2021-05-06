@@ -14,4 +14,5 @@ for d in */ ; do
 done
 
 # ignore huobi for now. as the test calls directly to the api and some of them are outdated
+go mod vendor
 go test $(go list ./... | grep -v huobi)
