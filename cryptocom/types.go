@@ -2,7 +2,6 @@ package cryptocom
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -24,7 +23,7 @@ type Request struct {
 	Method    string
 	ApiKey    string
 	Signature string
-	Nonce     string
+	Nonce     int64
 	Params    map[string]interface{}
 }
 
@@ -37,10 +36,10 @@ type Response struct {
 }
 
 type RawResponse struct {
-	ID      int
-	Method  string
-	Code    int
-	Message string
+	ID      int    `json:"id"`
+	Method  string `json:"method"`
+	Code    int `json:"code"`
+	Message string `json:"message"`
 }
 
 type InstrumentResponse struct {
@@ -122,9 +121,23 @@ type PublicTrade struct {
 	Timestamp  int64   `json:"t"`
 	TradeID    int     `json:"d"`
 }
+type DepositResponse struct {
+	Result DepositResult `json:"result"`
+}
+type DepositResult struct {
+	DepositAddressList []DepositAddress `json:"deposit_address_list"`
+}
+type DepositAddress struct {
+	Currency   string `json:"currency"`
+	CreateTime int64  `json:"create_time"`
+	ID         string `json:"id"`
+	Address    string `json:"address"`
+	Status     string `json:"status"`
+	Network    string `json:"network"`
+}
 
-func generateNonce() string {
-	return fmt.Sprintf("%d", time.Now().Unix()*1000)
+func generateNonce() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func (r *Request) Encode() ([]byte, error) {
@@ -159,5 +172,4 @@ func (r *Request) Encode() ([]byte, error) {
 		"params": r.Params,
 		"nonce":  r.Nonce,
 	})
-
 }

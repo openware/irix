@@ -35,8 +35,8 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 		if request.Id > 0 {
 			q.Add("id", fmt.Sprint(request.Id))
 		}
-		if request.Nonce != "" {
-			q.Add("nonce", request.Nonce)
+		if request.Nonce > 0 {
+			q.Add("nonce", fmt.Sprintf("%d", request.Nonce))
 		}
 		if request.ApiKey != "" {
 			q.Add("api_key", request.ApiKey)
@@ -50,12 +50,13 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 		req.URL.RawQuery = q.Encode()
 		break
 	case "POST":
-		payload, err1 := json.Marshal(request)
+		payload, err1 := request.Encode()
 		if err1 != nil {
 			err = err1
 			return
 		}
-		req, _ = http.NewRequest(verb, fmt.Sprint(h.root, request.Method), bytes.NewBuffer(payload))
+		req, _ = http.NewRequest(verb, fmt.Sprintf("%s/%s", h.root, request.Method), bytes.NewBuffer(payload))
+		req.Header.Add("Content-Type", "application/json")
 		break
 	}
 	var rawMsg json.RawMessage
@@ -70,8 +71,8 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 	if err = json.Unmarshal(rawMsg, &res); err != nil {
 		return
 	}
-	if res.Code != 0 {
-		err = fmt.Errorf("error call at %s code: %d. reason: %s", res.Method, res.Code, res.Message)
+	if res.Code > 0 {
+		err = fmt.Errorf("error call at %s code: %d. reason: %s", request.Method, res.Code, res.Message)
 		return
 	}
 	err = json.Unmarshal(rawMsg, out)

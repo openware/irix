@@ -224,7 +224,7 @@ func (c *Client) generateSignature(r *Request) {
 
 	concatenedParams := strings.Join(parameters, "")
 
-	data := r.Method + strconv.Itoa(r.Id) + r.ApiKey + concatenedParams + r.Nonce
+	data := r.Method + strconv.Itoa(r.Id) + r.ApiKey + concatenedParams + fmt.Sprintf("%d", r.Nonce)
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(data))
 	sha := hex.EncodeToString(h.Sum(nil))

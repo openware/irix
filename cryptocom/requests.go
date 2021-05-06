@@ -271,3 +271,21 @@ func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error
 	}
 	return
 }
+func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
+	if currency == "" {
+		err = errors.New("invalid currency value")
+		return
+	}
+	params := map[string]interface{}{
+		"currency": currency,
+	}
+	req = &Request{
+		Id: 1,
+		Method:    privateGetDepositHistory,
+		Params:    params,
+		ApiKey: c.key,
+		Nonce: generateNonce(),
+	}
+	c.generateSignature(req)
+	return
+}

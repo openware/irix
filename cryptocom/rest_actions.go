@@ -84,6 +84,18 @@ func (c *Client) RestGetPublicTrades(instrumentName string) (res PublicTradeResu
 	}
 	return
 }
+func (c *Client) RestGetDepositAddress(currency string) (res DepositResult, err error) {
+	req, err := c.getDepositAddress(currency)
+	if err != nil {
+		return
+	}
+	var result DepositResponse
+	_, err = c.rest.Send("POST", req, &result)
+	if err == nil {
+		res = result.Result
+	}
+	return
+}
 
 func (c *Client) send(r *Request) (Response, error) {
 	body, err := r.Encode()

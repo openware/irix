@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -607,4 +608,11 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 			assert.NotNil(t, res.Data)
 		}
 	}
+}
+
+func TestClient_GetDepositAddress(t *testing.T)  {
+	//method := privateGetDepositAddress
+	cli := Default(os.Getenv("API_KEY"), os.Getenv("API_SECRET"), true)
+	res, err := cli.RestGetDepositAddress("USDT")
+	fmt.Println(res, err)
 }
