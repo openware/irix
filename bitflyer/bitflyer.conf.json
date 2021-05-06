@@ -25,6 +25,7 @@
     ],
     "pairs": {
       "spot": {
+        "assetEnabled": true,
         "enabled": "BTC_JPY,ETH_BTC,BCH_BTC",
         "available": "BTC_JPY,FXBTC_JPY,ETH_BTC,BCH_BTC"
       }

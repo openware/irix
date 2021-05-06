@@ -23,6 +23,7 @@
     ],
     "pairs": {
       "spot": {
+        "assetEnabled": true,
         "enabled": "BTC-AUD",
         "available": "BTC-AUD,LTC-AUD,LTC-BTC,ETH-BTC,ETH-AUD,ETC-AUD,ETC-BTC,XRP-AUD,XRP-BTC,POWR-AUD,POWR-BTC,OMG-AUD,OMG-BTC,BCHABC-AUD,BCHABC-BTC,BCHSV-AUD,BCHSV-BTC,GNT-AUD,GNT-BTC,BAT-AUD,BAT-BTC,XLM-AUD,XLM-BTC"
       }
