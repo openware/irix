@@ -2,11 +2,11 @@
   "name": "FTX",
   "enabled": true,
   "verbose": false,
-  "httpTimeout": 0,
-  "websocketResponseCheckTimeout": 0,
-  "websocketResponseMaxLimit": 0,
-  "websocketTrafficTimeout": 0,
-  "websocketOrderbookBufferLimit": 0,
+  "httpTimeout": 15000000000,
+  "websocketResponseCheckTimeout": 30000000,
+  "websocketResponseMaxLimit": 7000000000,
+  "websocketTrafficTimeout": 30000000000,
+  "websocketOrderbookBufferLimit": 5,
   "baseCurrencies": "USD",
   "currencyPairs": {
     "assetTypes": [

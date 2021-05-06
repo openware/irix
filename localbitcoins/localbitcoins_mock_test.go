@@ -15,7 +15,7 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockfile = "../../testdata/http_mock/localbitcoins/localbitcoins.json"
+const mockfile = "./localbitcoins.mock.json"
 
 var mockTests = true
 

@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -72,9 +71,6 @@ func fromByte(by []byte) (res *ExchangeConfig, err error)  {
 		return
 	}
 	// TODO: add more validations to consider config is valid
-	if res.Features == nil {
-		return nil, errors.New("invalid config")
-	}
 	return
 }
 

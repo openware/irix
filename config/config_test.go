@@ -12,7 +12,7 @@ import (
 func TestConfigReadString_InvalidJson(t *testing.T)  {
 	cases := []string{
 		"",
-		"{}",
+		"{},",
 		"P{}",
 		`{
    "name": "Binance",
@@ -180,8 +180,6 @@ func TestConfigReadString_InvalidJson(t *testing.T)  {
     }
    ]
   }`,
-		`{"name": "some-crypto-exchange"}`,
-
 	}
 	for _, c := range cases {
 		cfg, err := FromString(c)
@@ -280,7 +278,7 @@ func TestFromReader(t *testing.T) {
 		data []byte
 		shouldError bool
 	}{
-		{[]byte("{}"), true},
+		{[]byte("{},"), true},
 		{[]byte(nil), true},
 		{[]byte("p{}"), true},
 		{[]byte(`{

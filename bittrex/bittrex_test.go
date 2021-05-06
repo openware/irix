@@ -301,8 +301,8 @@ func TestGetFee(t *testing.T) {
 	// CryptocurrencyWithdrawalFee Basic
 	feeBuilder = setFeeBuilder()
 	feeBuilder.FeeType = exchange.CryptocurrencyWithdrawalFee
-	if resp, err := b.GetFee(feeBuilder); resp != float64(0.00015) || err != nil {
-		t.Errorf("Expected: %f, Received: %f", float64(0.00015), resp)
+	if resp, err := b.GetFee(feeBuilder); resp != float64(0.00030) || err != nil {
+		t.Errorf("Expected: %f, Received: %f", float64(0.00030), resp)
 		t.Error(err)
 	}
 
