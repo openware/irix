@@ -3,17 +3,18 @@ set -xe
 
 ROOT_DIR=$PWD
 
-go test ./config... -cover -race
-go vet ./config...
-
+go mod vendor
+go vet ./...
+go test .
 for d in */ ; do
-    if [ -f "$d/go.mod" ]; then
+  if [ $d = "huobi/" ] || [ $d = "vendor/" ]; then
+    continue
+  fi
 	cd $d
-
-	go mod download
-	go test ./... -cover -race
-	go vet ./...
-
+  if [ -f "$d/go.mod" ]; then
+    go mod download
+  fi
+  go test -cover .
 	cd $ROOT_DIR
-    fi
 done
+

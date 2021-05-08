@@ -15,7 +15,7 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockfile = "../../testdata/http_mock/poloniex/poloniex.json"
+const mockfile = "./poloniex.mock.json"
 
 var mockTests = true
 

@@ -15,7 +15,7 @@ import (
 	"github.com/openware/pkg/mock"
 )
 
-const mockfile = "../../testdata/http_mock/bitstamp/bitstamp.json"
+const mockfile = "./bitstamp.mock.json"
 
 func configTest() (*config.ExchangeConfig, error) {
 	wd, _ := os.Getwd()
