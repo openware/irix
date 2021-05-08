@@ -22,6 +22,7 @@
     ],
     "pairs": {
       "spot": {
+        "assetEnabled": true,
         "enabled": "XBTUSD,XBTSGD",
         "available": "XBTUSD,XBTSGD"
       }

@@ -17,6 +17,7 @@
     ],
     "pairs": {
       "downsideprofitcontract": {
+        "assetEnabled": true,
         "enabled": "XBT7D_D95",
         "available": "XBT7D_D95",
         "requestFormat": {
@@ -29,6 +30,7 @@
         }
       },
       "futures": {
+        "assetEnabled": true,
         "enabled": "BCHZ19",
         "available": "XRPZ19,BCHZ19,ADAZ19,EOSZ19,TRXZ19,XBTZ19,ETHZ19,LTCZ19",
         "requestFormat": {
@@ -39,6 +41,7 @@
         }
       },
       "perpetualcontract": {
+        "assetEnabled": true,
         "enabled": "ETHUSD",
         "available": "XBTUSD,ETHUSD",
         "requestFormat": {
@@ -49,6 +52,7 @@
         }
       },
       "upsideprofitcontract": {
+        "assetEnabled": true,
         "enabled": "XBT7D_U105",
         "available": "XBT7D_U105",
         "requestFormat": {

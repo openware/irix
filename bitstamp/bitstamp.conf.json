@@ -21,6 +21,7 @@
     ],
     "pairs": {
       "spot": {
+        "assetEnabled": true,
         "enabled": "BTCUSD,BTCEUR,EURUSD,XRPUSD,XRPEUR",
         "available": "LTCUSD,ETHUSD,XRPEUR,BCHUSD,BCHEUR,BTCEUR,XRPBTC,EURUSD,BCHBTC,LTCEUR,BTCUSD,LTCBTC,XRPUSD,ETHBTC,ETHEUR"
       }
