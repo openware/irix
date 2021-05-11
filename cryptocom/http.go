@@ -56,7 +56,6 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 			return
 		}
 		urlString := fmt.Sprintf("%s/%s", h.root, request.Method)
-		fmt.Println("request", urlString, string(payload))
 		req, _ = http.NewRequest(verb, urlString, bytes.NewBuffer(payload))
 		req.Header.Add("Content-Type", "application/json")
 		break

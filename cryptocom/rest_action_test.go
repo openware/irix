@@ -398,8 +398,8 @@ func TestClient_RestGetCandlestick(t *testing.T) {
 		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10004, nil), 400, false, true},
 		{"BTC_USDT", 1, 1, mockResponseBody(1, method, 10001, nil), 500, false, true},
 		// valid cases
-		{"BTC_USDT", 0, Month, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Month, 1000, []Candlestick{{time.Now().Unix(), 1,1,1,1,1}})), 200, false, false},
-		{"BTC_USDT", 10, Week, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Week, 1000, []Candlestick{{time.Now().Unix(), 1,1,1,1,1}})), 200, false, false},
+		{"BTC_USDT", 0, Month, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Month, 1000, []Candlestick{{time.Now().Unix(), 1, 1, 1, 1, 1}})), 200, false, false},
+		{"BTC_USDT", 10, Week, mockResponseBody(1, method, 0, mockCandlestick("BTC_USDT", Week, 1000, []Candlestick{{time.Now().Unix(), 1, 1, 1, 1, 1}})), 200, false, false},
 	}
 	for _, r := range testCases {
 		mockClient := &httpClientMock{}
@@ -435,7 +435,7 @@ func TestClient_RestGetCandlestick(t *testing.T) {
 	}
 }
 
-func TestClient_GetTicker(t *testing.T)  {
+func TestClient_GetTicker(t *testing.T) {
 	method := publicGetTicker
 
 	testCases := []struct {
@@ -446,16 +446,16 @@ func TestClient_GetTicker(t *testing.T)  {
 		shouldError           bool
 	}{
 		// invalid arguments
-		{"_USDT",  nil, 400, true, false},
-		{"BTC_",  nil, 400, true, false},
-		{"_",  nil, 400, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"_USDT", nil, 400, true, false},
+		{"BTC_", nil, 400, true, false},
+		{"_", nil, 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
 		// invalid cases
-		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, false, true},
 		// valid cases
-		{"",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+		{"", mockResponseBody(1, method, 0, mockTicker(Ticker{
 			Instrument: "BTC_USDT",
 			Bid:        0,
 			Ask:        0,
@@ -476,7 +476,7 @@ func TestClient_GetTicker(t *testing.T)  {
 			Lowest:     0,
 			Change:     0,
 		})), 200, false, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+		{"BTC_USDT", mockResponseBody(1, method, 0, mockTicker(Ticker{
 			Instrument: "BTC_USDT",
 			Bid:        1,
 			Ask:        1,
@@ -487,7 +487,7 @@ func TestClient_GetTicker(t *testing.T)  {
 			Lowest:     1,
 			Change:     1,
 		})), 200, false, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 0, mockTicker(Ticker{
+		{"BTC_USDT", mockResponseBody(1, method, 0, mockTicker(Ticker{
 			Instrument: "BTC_USDT",
 			Bid:        1,
 			Ask:        1,
@@ -528,7 +528,7 @@ func TestClient_GetTicker(t *testing.T)  {
 	}
 }
 
-func TestClient_GetPublicTrades(t *testing.T)  {
+func TestClient_GetPublicTrades(t *testing.T) {
 	method := publicGetTrades
 
 	testCases := []struct {
@@ -539,16 +539,16 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 		shouldError           bool
 	}{
 		// invalid arguments
-		{"_USDT",  nil, 400, true, false},
-		{"BTC_",  nil, 400, true, false},
-		{"_",  nil, 400, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"_USDT", nil, 400, true, false},
+		{"BTC_", nil, 400, true, false},
+		{"_", nil, 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
 		// invalid cases
-		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, false, true},
 		// valid cases
-		{"",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+		{"", mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
 			Instrument: "BTC_USDT",
 			Quantity:   1,
 			Price:      0.1,
@@ -563,7 +563,7 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 			Timestamp:  time.Now().Unix(),
 			TradeID:    2,
 		})), 200, false, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+		{"BTC_USDT", mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
 			Instrument: "BTC_USDT",
 			Quantity:   1,
 			Price:      0.2,
@@ -571,7 +571,7 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 			Timestamp:  time.Now().Unix(),
 			TradeID:    2,
 		})), 200, false, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
+		{"BTC_USDT", mockResponseBody(1, method, 0, mockPublicTrades(PublicTrade{
 			Instrument: "BTC_USDT",
 			Quantity:   1,
 			Price:      0.2,
@@ -609,7 +609,7 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 	}
 }
 
-func TestClient_PrivateGetAccountSummary(t *testing.T)  {
+func TestClient_PrivateGetAccountSummary(t *testing.T) {
 	method := privateGetAccountSummary
 
 	testCases := []struct {
@@ -620,23 +620,25 @@ func TestClient_PrivateGetAccountSummary(t *testing.T)  {
 		shouldError           bool
 	}{
 		// invalid arguments
-		{"_USDT",  nil, 400, true, false},
-		{"BTC_",  nil, 400, true, false},
-		{"_",  nil, 400, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"_USDT", nil, 400, true, false},
+		{"BTC_", nil, 400, true, false},
+		{"_", nil, 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
 		// invalid cases
-		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
-		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC", mockResponseBody(1, method, 10004, nil), 500, false, true},
+		{"USDT", mockResponseBody(1, method, 10001, nil), 500, false, true},
 		// valid cases
-		{"",  mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
+		{"", mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
 			Balance:   0,
 			Available: 0,
 			Order:     0,
 			Stake:     0,
 			Currency:  "BTC",
 		})), 200, false, false},
-		{"USDT",  mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
+		{"USDT", mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
 			Balance:   0,
 			Available: 0,
 			Order:     0,
@@ -651,17 +653,31 @@ func TestClient_PrivateGetAccountSummary(t *testing.T)  {
 			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
 		}
 		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
-		cli := &Client{rest: newHttpClient(mockClient,
-			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
-		)}
+		cli := &Client{
+			key: "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
 		res, err := cli.RestGetAccountSummary(r.instrumentName)
 		if r.shouldErrorValidation {
 			mockClient.AssertNotCalled(t, "Do")
 		} else {
+			assert.Len(t, mockClient.Calls, 1, r)
 			req := mockClient.Calls[0].Arguments[0].(*http.Request)
-			assert.Equal(t, "GET", req.Method)
+			b, _ := ioutil.ReadAll(req.Body)
+			var body map[string]interface{}
+			_ = json.Unmarshal(b, &body)
+			params := body["params"].(map[string]interface{})
+			assert.Equal(t, "POST", req.Method)
 			assert.Contains(t, req.URL.Path, method)
-			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			if r.instrumentName != "" {
+				assert.Equal(t, r.instrumentName, params["currency"])
+			} else {
+				assert.Equal(t, map[string]interface{}{}, params)
+			}
+			assert.NotEmpty(t, body["api_key"])
+			assert.NotEmpty(t, body["sig"])
 			mockClient.AssertExpectations(t)
 		}
 		if r.shouldError {

@@ -166,6 +166,36 @@ func TestGetTrades(t *testing.T)  {
 	}
 }
 
+func TestGetDepositAddress(t *testing.T)  {
+	testTable := []struct{
+		instrumentName string
+		shouldError bool
+	}{
+		{"_", true},
+		{"BTC_", true},
+		{"_USDT", true},
+		{"BTC_USDT", true},
+		{"", true},
+		// valid inputs
+		{"BTC", false},
+		{"USDT", false},
+	}
+	for _, arg := range testTable {
+		r, err := cl.getDepositAddress(arg.instrumentName)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, privateGetDepositAddress, r.Method, arg)
+			if arg.instrumentName != "" {
+				assert.Equal(t, arg.instrumentName, r.Params["currency"], arg)
+			} else {
+				assert.Nil(t, r.Params["currency"])
+			}
+		}
+	}
+}
 func TestGetAccountSummary(t *testing.T)  {
 	testTable := []struct{
 		instrumentName string
@@ -188,10 +218,12 @@ func TestGetAccountSummary(t *testing.T)  {
 		} else {
 			assert.Nil(t, err, arg)
 			assert.Equal(t, privateGetAccountSummary, r.Method, arg)
+			assert.NotEmpty(t, r.ApiKey)
+			assert.NotEmpty(t, r.Signature)
 			if arg.instrumentName != "" {
-				assert.Equal(t, arg.instrumentName, r.Params["instrument_name"], arg)
+				assert.Equal(t, arg.instrumentName, r.Params["currency"], arg)
 			} else {
-				assert.Nil(t, r.Params["instrument_name"])
+				assert.Nil(t, r.Params["currency"])
 			}
 		}
 	}

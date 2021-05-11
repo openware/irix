@@ -278,6 +278,9 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 		err = errors.New("invalid currency value")
 		return
 	}
+	if err = isValidCurrency(currency); err != nil {
+		return
+	}
 	params := map[string]interface{}{
 		"currency": currency,
 	}
@@ -298,16 +301,23 @@ func (c *Client) getAccountSummary(instrumentName string) (req *Request, err err
 	if instrumentName != "" {
 		// TODO: do small validation. ask the team how the validation done in the backend
 		code := currency.NewCode(instrumentName).String()
-		regex := regexp.MustCompile("^[a-zA-Z0-9]+$")
-		if code == "" || len(code) < 3 || !regex.MatchString(code) {
-			err = errors.New("invalid code")
+		if err = isValidCurrency(code); err != nil {
 			return
 		}
-		params["instrument_name"] = code
+		params["currency"] = code
 	}
 	req = &Request{
 		Method:    privateGetAccountSummary,
 		Params:    params,
+	}
+	c.generateSignature(req)
+	return
+}
+
+func isValidCurrency(code string) (err error) {
+	regex := regexp.MustCompile("^[a-zA-Z0-9]+$")
+	if code == "" || len(code) < 3 || !regex.MatchString(code) {
+		err = errors.New("invalid code")
 	}
 	return
 }
