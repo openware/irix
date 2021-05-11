@@ -165,3 +165,34 @@ func TestGetTrades(t *testing.T)  {
 		}
 	}
 }
+
+func TestGetAccountSummary(t *testing.T)  {
+	testTable := []struct{
+		instrumentName string
+		shouldError bool
+	}{
+		{"_", true},
+		{"BTC_", true},
+		{"_USDT", true},
+		{"BTC_USDT", true},
+		// valid inputs
+		{"", false},
+		{"BTC", false},
+		{"USDT", false},
+	}
+	for _, arg := range testTable {
+		r, err := cl.getAccountSummary(arg.instrumentName)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, privateGetAccountSummary, r.Method, arg)
+			if arg.instrumentName != "" {
+				assert.Equal(t, arg.instrumentName, r.Params["instrument_name"], arg)
+			} else {
+				assert.Nil(t, r.Params["instrument_name"])
+			}
+		}
+	}
+}

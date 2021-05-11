@@ -38,7 +38,7 @@ type Response struct {
 type RawResponse struct {
 	ID      int    `json:"id"`
 	Method  string `json:"method"`
-	Code    int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
@@ -134,6 +134,20 @@ type DepositAddress struct {
 	Address    string `json:"address"`
 	Status     string `json:"status"`
 	Network    string `json:"network"`
+}
+
+type AccountResponse struct {
+	Result AccountResult `json:"result"`
+}
+type AccountResult struct {
+	Accounts []AccountSummary `json:"accounts"`
+}
+type AccountSummary struct {
+	Balance   float64 `json:"balance"`
+	Available float64 `json:"available"`
+	Order     float64 `json:"order"`
+	Stake     int     `json:"stake"`
+	Currency  string  `json:"currency"`
 }
 
 func generateNonce() int64 {

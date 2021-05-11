@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -610,9 +609,66 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 	}
 }
 
-func TestClient_GetDepositAddress(t *testing.T)  {
-	//method := privateGetDepositAddress
-	cli := Default(os.Getenv("API_KEY"), os.Getenv("API_SECRET"), true)
-	res, err := cli.RestGetDepositAddress("BTC")
-	fmt.Println(res, err)
+func TestClient_PrivateGetAccountSummary(t *testing.T)  {
+	method := privateGetAccountSummary
+
+	testCases := []struct {
+		instrumentName        string
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT",  nil, 400, true, false},
+		{"BTC_",  nil, 400, true, false},
+		{"_",  nil, 400, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// invalid cases
+		{"BTC_USDT",  mockResponseBody(1, method, 10004, nil), 400, false, true},
+		{"BTC_USDT",  mockResponseBody(1, method, 10001, nil), 500, false, true},
+		// valid cases
+		{"",  mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
+			Balance:   0,
+			Available: 0,
+			Order:     0,
+			Stake:     0,
+			Currency:  "BTC",
+		})), 200, false, false},
+		{"USDT",  mockResponseBody(1, method, 0, mockAccounts(AccountSummary{
+			Balance:   0,
+			Available: 0,
+			Order:     0,
+			Stake:     0,
+			Currency:  "USDT",
+		})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+		res, err := cli.RestGetAccountSummary(r.instrumentName)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			assert.Equal(t, "GET", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			assert.Equal(t, r.instrumentName, req.URL.Query().Get("instrument_name"))
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			assert.NotNil(t, res.Accounts)
+		}
+	}
 }

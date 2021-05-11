@@ -2,6 +2,8 @@ package cryptocom
 
 import (
 	"errors"
+	"github.com/openware/pkg/currency"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -279,13 +281,33 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	params := map[string]interface{}{
 		"currency": currency,
 	}
+	nonce := generateNonce()
 	req = &Request{
-		Id: 1,
-		Method:    privateGetDepositHistory,
+		Id: int(nonce),
+		Method:    privateGetDepositAddress,
 		Params:    params,
 		ApiKey: c.key,
-		Nonce: generateNonce(),
+		Nonce: nonce,
 	}
 	c.generateSignature(req)
+	return
+}
+
+func (c *Client) getAccountSummary(instrumentName string) (req *Request, err error) {
+	params := map[string]interface{}{}
+	if instrumentName != "" {
+		// TODO: do small validation. ask the team how the validation done in the backend
+		code := currency.NewCode(instrumentName).String()
+		regex := regexp.MustCompile("^[a-zA-Z0-9]+$")
+		if code == "" || len(code) < 3 || !regex.MatchString(code) {
+			err = errors.New("invalid code")
+			return
+		}
+		params["instrument_name"] = code
+	}
+	req = &Request{
+		Method:    privateGetAccountSummary,
+		Params:    params,
+	}
 	return
 }

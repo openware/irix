@@ -96,6 +96,18 @@ func (c *Client) RestGetDepositAddress(currency string) (res DepositResult, err 
 	}
 	return
 }
+func (c *Client) RestGetAccountSummary(currency string) (res AccountResult, err error) {
+	req, err := c.getAccountSummary(currency)
+	if err != nil {
+		return
+	}
+	var result AccountResponse
+	_, err = c.rest.Send("POST", req, &result)
+	if err == nil {
+		res = result.Result
+	}
+	return
+}
 
 func (c *Client) send(r *Request) (Response, error) {
 	body, err := r.Encode()
