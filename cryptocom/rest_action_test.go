@@ -613,6 +613,6 @@ func TestClient_GetPublicTrades(t *testing.T)  {
 func TestClient_GetDepositAddress(t *testing.T)  {
 	//method := privateGetDepositAddress
 	cli := Default(os.Getenv("API_KEY"), os.Getenv("API_SECRET"), true)
-	res, err := cli.RestGetDepositAddress("USDT")
+	res, err := cli.RestGetDepositAddress("BTC")
 	fmt.Println(res, err)
 }

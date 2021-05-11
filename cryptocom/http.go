@@ -55,7 +55,9 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 			err = err1
 			return
 		}
-		req, _ = http.NewRequest(verb, fmt.Sprintf("%s/%s", h.root, request.Method), bytes.NewBuffer(payload))
+		urlString := fmt.Sprintf("%s/%s", h.root, request.Method)
+		fmt.Println("request", urlString, string(payload))
+		req, _ = http.NewRequest(verb, urlString, bytes.NewBuffer(payload))
 		req.Header.Add("Content-Type", "application/json")
 		break
 	}
