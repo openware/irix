@@ -239,7 +239,7 @@ func (c *Client) authenticate() {
 }
 
 func (c *Client) subscribePrivateChannels(channels []string, record bool) error {
-	r := c.subscribeRequest(channels)
+	r, _ := c.subscribe(channels)
 	err := c.sendPrivateRequest(r)
 
 	if err != nil && record {
@@ -250,7 +250,7 @@ func (c *Client) subscribePrivateChannels(channels []string, record bool) error 
 }
 
 func (c *Client) subscribePublicChannels(channels []string, record bool) error {
-	r := c.subscribeRequest(channels)
+	r, _ := c.subscribe(channels)
 	err := c.sendPublicRequest(r)
 
 	if err != nil && record {

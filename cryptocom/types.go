@@ -150,6 +150,13 @@ type AccountSummary struct {
 	Currency  string  `json:"currency"`
 }
 
+type ScopeResult struct {
+	Result Scope `json:"result"`
+}
+type Scope struct {
+	Scope string `json:"scope"`
+}
+
 func generateNonce() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }

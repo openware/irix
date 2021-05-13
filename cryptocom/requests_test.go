@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+	"time"
 )
 
 var (
@@ -13,7 +14,7 @@ var (
 func TestRequest_AuthRequest(t *testing.T)  {
 	t.Parallel()
 	r := cl.authRequest()
-	assert.Equal(t, 1, r.Id)
+	assert.NotEmpty(t,  r.Id)
 	assert.Equal(t, publicAuth, r.Method)
 	assert.NotEmpty(t, r.Nonce)
 	assert.NotEmpty(t, r.Signature)
@@ -197,6 +198,7 @@ func TestGetDepositAddress(t *testing.T)  {
 	}
 }
 func TestGetAccountSummary(t *testing.T)  {
+	t.Parallel()
 	testTable := []struct{
 		instrumentName string
 		shouldError bool
@@ -225,6 +227,126 @@ func TestGetAccountSummary(t *testing.T)  {
 			} else {
 				assert.Nil(t, r.Params["currency"])
 			}
+		}
+	}
+}
+
+func TestRespondHeartbeat(t *testing.T) {
+	t.Parallel()
+	testTable := []struct{
+		id int
+		shouldError bool
+	}{
+		{0, true},
+		{ -1, true},
+		{1, false},
+		{int(time.Now().UnixNano()/int64(time.Millisecond)), false},
+	}
+	for _, c := range testTable {
+		res, err := cl.heartbeat(c.id)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err)
+			assert.NotNil(t, res)
+			assert.Equal(t, publicRespondHeartbeat, res.Method)
+			assert.Equal(t, c.id, res.Id)
+		}
+	}
+}
+func TestSetCancelOnDisconnect(t *testing.T) {
+	t.Parallel()
+	testTable := []struct{
+		scope string
+		shouldError bool
+	}{
+		{"", true},
+		{"random", true},
+		{"-", true},
+		// valid inputs
+		{ScopeAccount, false},
+		{ScopeConnection, false},
+	}
+	for _, arg := range testTable {
+		r, err := cl.setCancelOnDisconnect(arg.scope)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, privateSetCancelOnDisconnect, r.Method, arg)
+			assert.NotEmpty(t, r.ApiKey)
+			assert.NotEmpty(t, r.Signature)
+			assert.Equal(t, arg.scope, r.Params["scope"])
+		}
+	}
+}
+
+func TestGetCancelOnDisconnect(t *testing.T) {
+	t.Parallel()
+	req, _ := cl.getCancelOnDisconnect()
+	assert.Equal(t, privateGetCancelOnDisconnect, req.Method)
+	assert.NotEmpty(t, req.Signature)
+	assert.NotEmpty(t, req.Nonce)
+}
+func TestSubscribeChannel(t *testing.T) {
+	t.Parallel()
+	testTable := []struct{
+		channel []string
+		shouldError bool
+	}{
+		{[]string{""}, true},
+		{[]string{"-"}, true},
+		{[]string{"cde"}, true},
+		{[]string{"user.balance", "-"}, true},
+		{[]string{"user.something", "-"}, true},
+		// valid inputs
+		{[]string{"user.balance", "user.order.ETC_USDT"}, false},
+		{[]string{"user.margin.order.BTC_USDT", "user.margin.trade.ETC_USDT"}, false},
+		{[]string{"book.ETC_USDT.10", "trade.ETC_USDT"}, false},
+		{[]string{"candlestick.1d.ETC_USDT"}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.subscribe(c.channel)
+		if c.shouldError {
+			assert.Nil(t, req)
+			assert.NotNil(t, err)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, subscribe, req.Method, c)
+			assert.Equal(t, c.channel, req.Params["channels"], c)
+		}
+	}
+}
+func TestUnsubscribeChannel(t *testing.T) {
+	t.Parallel()
+	testTable := []struct{
+		channel []string
+		shouldError bool
+	}{
+		{[]string{""}, true},
+		{[]string{"-"}, true},
+		{[]string{"cde"}, true},
+		{[]string{"user.balance", "-"}, true},
+		{[]string{"user.something", "-"}, true},
+		// valid inputs
+		{[]string{"user.balance", "user.order.ETC_USDT"}, false},
+		{[]string{"user.margin.order.BTC_USDT", "user.margin.trade.ETC_USDT"}, false},
+		{[]string{"book.ETC_USDT.10", "trade.ETC_USDT"}, false},
+		{[]string{"candlestick.1d.ETC_USDT"}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.unsubscribe(c.channel)
+		if c.shouldError {
+			assert.Nil(t, req, c)
+			assert.NotNil(t, err, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, unsubscribe, req.Method, c)
+			assert.Equal(t, c.channel, req.Params["channels"], c)
 		}
 	}
 }

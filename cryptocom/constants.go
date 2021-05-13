@@ -39,6 +39,7 @@ const (
 	privateSetCancelOnDisconnect = "private/set-cancel-on-disconnect"
 	privateGetCancelOnDisconnect = "private/get-cancel-on-disconnect"
 	subscribe = "subscribe"
+	unsubscribe = "subscribe"
 	// ws endpoints
 	userEndpoint   = "user"
 	marketEndpoint = "market"
@@ -90,6 +91,11 @@ func (c Interval) Encode() string {
 		return ""
 	}
 }
+
+const (
+	ScopeAccount string = "ACCOUNT"
+	ScopeConnection = "CONNECTION"
+)
 
 // rate limit
 const (

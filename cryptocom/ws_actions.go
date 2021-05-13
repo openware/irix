@@ -133,7 +133,7 @@ func (c *Client) GetOrderDetails(reqID int, remoteID string) error {
 }
 
 func (c *Client) respondHeartBeat(isPrivate bool, id int) {
-	r := c.hearBeatRequest(id)
+	r, _ := c.heartbeat(id)
 
 	if isPrivate {
 		c.sendPrivateRequest(r)

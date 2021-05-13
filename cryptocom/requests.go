@@ -12,31 +12,80 @@ import (
 )
 
 func (c *Client) authRequest() *Request {
+	nonce := generateNonce()
 	r := &Request{
-		Id:     1,
+		Id:     int(nonce),
 		Method: publicAuth,
 		ApiKey: c.key,
-		Nonce:  generateNonce(),
+		Nonce:  nonce,
 	}
 
 	c.generateSignature(r)
 	return r
 }
 
-func (c *Client) subscribeRequest(channels []string) *Request {
-	return &Request{
-		Id:     1,
+func validChannel(channel string) error {
+	allowedFormats := []string{
+		"user.order.",
+		"user.trade.",
+		"user.balance",
+		"user.margin.balance",
+		"user.margin.order.",
+		"user.margin.trade.",
+		"book.",
+		"ticker.",
+		"trade.",
+		"candlestick.",
+	}
+	err := errors.New("invalid format")
+	for _, f := range allowedFormats {
+		idx := strings.Index(channel, f)
+		if idx >= 0 {
+			return nil
+		}
+	}
+	return err
+
+}
+func (c *Client) subscribe(channels []string) (req *Request, err error) {
+	for _, ch := range channels {
+		if err = validChannel(ch); err != nil {
+			return
+		}
+	}
+	nonce := generateNonce()
+	req = &Request{
+		Id:     int(nonce),
 		Method: subscribe,
 		Params: map[string]interface{}{"channels": channels},
-		Nonce:  generateNonce(),
+		Nonce:  nonce,
 	}
+	return
+}
+func (c *Client) unsubscribe(channels []string) (req *Request, err error) {
+	for _, ch := range channels {
+		if err = validChannel(ch); err != nil {
+			return
+		}
+	}
+	nonce := generateNonce()
+	req = &Request{
+		Id:     int(nonce),
+		Method: unsubscribe,
+		Params: map[string]interface{}{"channels": channels},
+		Nonce:  nonce,
+	}
+	return
 }
 
-func (c *Client) hearBeatRequest(reqId int) *Request {
+func (c *Client) heartbeat(reqId int) (*Request, error) {
+	if reqId <= 0 {
+		return nil, errors.New("invalid id")
+	}
 	return &Request{
 		Id:     reqId,
 		Method: publicRespondHeartbeat,
-	}
+	}, nil
 }
 
 func (c *Client) createOrderLimitRequest(
@@ -187,9 +236,9 @@ func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageS
 
 func (c *Client) getInstruments() *Request {
 	return &Request{
-		Id: 1,
-		Method:    publicGetInstruments,
-		Nonce:     generateNonce(),
+		Id:     1,
+		Method: publicGetInstruments,
+		Nonce:  generateNonce(),
 	}
 }
 
@@ -212,9 +261,9 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 		params["depth"] = strconv.Itoa(depth)
 	}
 	req = &Request{
-		Id:        reqID,
-		Method:    publicGetBook,
-		Nonce:     generateNonce(),
+		Id:     reqID,
+		Method: publicGetBook,
+		Nonce:  generateNonce(),
 		Params: params,
 	}
 	return
@@ -234,14 +283,14 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 	}
 	params := map[string]interface{}{
 		"instrument_name": instrumentName,
-		"interval": period.Encode(),
+		"interval":        period.Encode(),
 	}
 	if depth > 0 {
 		params["depth"] = depth
 	}
 	req = &Request{
-		Method:    publicGetCandlestick,
-		Params:    params,
+		Method: publicGetCandlestick,
+		Params: params,
 	}
 	return
 }
@@ -254,8 +303,8 @@ func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
 		params["instrument_name"] = instrumentName
 	}
 	req = &Request{
-		Method:    publicGetTicker,
-		Params:    params,
+		Method: publicGetTicker,
+		Params: params,
 	}
 	return
 }
@@ -268,8 +317,8 @@ func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error
 		params["instrument_name"] = instrumentName
 	}
 	req = &Request{
-		Method:    publicGetTrades,
-		Params:    params,
+		Method: publicGetTrades,
+		Params: params,
 	}
 	return
 }
@@ -286,11 +335,11 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	}
 	nonce := generateNonce()
 	req = &Request{
-		Id: int(nonce),
-		Method:    privateGetDepositAddress,
-		Params:    params,
+		Id:     int(nonce),
+		Method: privateGetDepositAddress,
+		Params: params,
 		ApiKey: c.key,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	c.generateSignature(req)
 	return
@@ -307,8 +356,35 @@ func (c *Client) getAccountSummary(instrumentName string) (req *Request, err err
 		params["currency"] = code
 	}
 	req = &Request{
-		Method:    privateGetAccountSummary,
-		Params:    params,
+		Method: privateGetAccountSummary,
+		Params: params,
+	}
+	c.generateSignature(req)
+	return
+}
+func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
+	if scope != ScopeConnection && scope != ScopeAccount {
+		return nil, errors.New("invalid scope value")
+	}
+	nonce := generateNonce()
+	req = &Request{
+		Id: int(nonce),
+		Method: privateSetCancelOnDisconnect,
+		Nonce: nonce,
+		Params: map[string]interface{}{
+			"scope": scope,
+		},
+	}
+	c.generateSignature(req)
+	return
+}
+
+func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
+	nonce := generateNonce()
+	req = &Request{
+		Id: int(nonce),
+		Method: privateGetCancelOnDisconnect,
+		Nonce: nonce,
 	}
 	c.generateSignature(req)
 	return
