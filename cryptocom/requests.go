@@ -556,6 +556,41 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 		Nonce:     nonce,
 		Params:    params,
 	}
-	c.generateSignature(req)
+	return
+}
+
+func (c *Client) getOpenOrders(market string, pageSize, page int) (req *Request, err error) {
+	if err = tryOrError(func() error {
+		if market == "" {
+			return nil
+		}
+		return validInstrument(market)
+	}, func() error {
+		if pageSize < 0 {
+			return errors.New("invalid page size value. minimum is 0")
+		}
+		return nil
+	}, func() error {
+		if page < 0 {
+			return errors.New("invalid page value. minimum is 0")
+		}
+		return nil
+	}); err != nil {
+		return
+	}
+	if pageSize == 0 {
+		pageSize = 20
+	}
+	params := kvParams{
+		"page_size": pageSize,
+		"page": page,
+	}
+	if market != "" {
+		params["instrument_name"] = market
+	}
+	req = &Request{
+		Method: privateGetOpenOrders,
+		Params: params,
+	}
 	return
 }

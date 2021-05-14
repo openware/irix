@@ -562,3 +562,35 @@ func TestClient_GetOrderDetail(t *testing.T) {
 		}
 	}
 }
+
+func TestClient_GetOpenOrders(t *testing.T) {
+	testTable := []struct{
+		instrumentName string
+		pageSize int
+		page int
+		expectedParams kvParams
+		shouldError bool
+	}{
+		{"-", 0, 0, nil, true},
+		{"BTC", 0, 0, nil, true},
+		{"BTC_USDT", -1, 0, nil, true},
+		{"BTC_USDT", 0, -1, nil, true},
+		// valid values
+		{"", 0, 0, kvParams{"page_size": 20, "page": 0}, false},
+		{"BTC_USDT", 0, 0, kvParams{"instrument_name": "BTC_USDT", "page_size": 20, "page": 0}, false},
+		{"BTC_USDT", 10, 0, kvParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 0}, false},
+		{"BTC_USDT", 10, 1, kvParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.getOpenOrders(c.instrumentName, c.pageSize, c.page)
+		if c.shouldError {
+			assert.Nil(t, req, c)
+			assert.NotNil(t, err, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, privateGetOpenOrders, req.Method)
+			assert.Equal(t, c.expectedParams, req.Params)
+		}
+	}
+}

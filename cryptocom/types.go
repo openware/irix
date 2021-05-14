@@ -24,7 +24,7 @@ type Request struct {
 	ApiKey    string
 	Signature string
 	Nonce     int64
-	Params    map[string]interface{}
+	Params    kvParams
 }
 
 type Response struct {
@@ -171,6 +171,41 @@ type Order struct {
 	OrderID       string `json:"order_id"`
 	ClientOrderID string `json:"client_oid"`
 }
+type OrderDetailResponse struct {
+	Result OrderDetail `json:"result"`
+}
+type OrderDetail struct {
+	TradeList []Trade `json:"trade_list"`
+	OrderInfo Order `json:"order_info"`
+}
+type Trade struct {
+	Side           string  `json:"side"`
+	InstrumentName string  `json:"instrument_name"`
+	Fee            float64 `json:"fee"`
+	TradeID        string  `json:"trade_id"`
+	CreateTime     int64   `json:"create_time"`
+	TradedPrice    int     `json:"traded_price"`
+	TradedQuantity int     `json:"traded_quantity"`
+	FeeCurrency    string  `json:"fee_currency"`
+	OrderID        string  `json:"order_id"`
+}
+type OrderInfo struct {
+	Status             string `json:"status"`
+	Side               string `json:"side"`
+	OrderID            string `json:"order_id"`
+	ClientOid          string `json:"client_oid"`
+	CreateTime         int64  `json:"create_time"`
+	UpdateTime         int64  `json:"update_time"`
+	Type               string `json:"type"`
+	InstrumentName     string `json:"instrument_name"`
+	CumulativeQuantity int    `json:"cumulative_quantity"`
+	CumulativeValue    int    `json:"cumulative_value"`
+	AvgPrice           int    `json:"avg_price"`
+	FeeCurrency        string `json:"fee_currency"`
+	TimeInForce        string `json:"time_in_force"`
+	ExecInst           string `json:"exec_inst"`
+}
+type kvParams map[string]interface{}
 
 func generateNonce() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
