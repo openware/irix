@@ -171,15 +171,24 @@ func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, 
 }
 
 // Market: "ETH_BTC"
-func (c *Client) cancelAllOrdersRequest(reqID int, market string) *Request {
-	return &Request{
-		Id:     reqID,
+func (c *Client) cancelAllOrder(reqID int, market string) (req *Request, err error) {
+	if err = validInstrument(market); err != nil {
+		return
+	}
+	id := reqID
+	nonce := generateNonce()
+	if id == 0 {
+		id = int(nonce)
+	}
+	req = &Request{
+		Id:     id,
 		Method: privateCancelAllOrders,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 		},
 		Nonce: generateNonce(),
 	}
+	return
 }
 
 func (c *Client) getOrderDetailsRequest(reqID int, remoteID string) *Request {

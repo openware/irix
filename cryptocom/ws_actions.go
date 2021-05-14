@@ -123,7 +123,7 @@ func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
 }
 
 func (c *Client) CancelAllOrders(reqID int, market string) error {
-	r := c.cancelAllOrdersRequest(reqID, market)
+	r, _ := c.cancelAllOrder(reqID, market)
 	return c.sendPrivateRequest(r)
 }
 

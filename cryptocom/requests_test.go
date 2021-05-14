@@ -385,6 +385,7 @@ func TestUnsubscribeChannel(t *testing.T) {
 }
 
 func TestClient_CreateOrder(t *testing.T)  {
+	t.Parallel()
 	testTable := []struct{
 		instrumentName string
 		side order.Side
@@ -463,6 +464,7 @@ func TestClient_CreateOrder(t *testing.T)  {
 	}
 }
 func TestClient_CancelOrder(t *testing.T) {
+	t.Parallel()
 	testTable := []struct {
 		instrumentName string
 		orderId string
@@ -488,6 +490,40 @@ func TestClient_CancelOrder(t *testing.T) {
 			assert.NotNil(t, req, c)
 			assert.Equal(t, privateCancelOrder, req.Method)
 			assert.Equal(t, c.orderId, req.Params["order_id"])
+			assert.Equal(t, c.instrumentName, req.Params["instrument_name"])
+			if c.reqID > 0 {
+				assert.Equal(t, c.reqID, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
+			}
+		}
+	}
+}
+
+func TestClient_CancelAllOrders(t *testing.T) {
+	t.Parallel()
+	testTable := []struct {
+		instrumentName string
+		reqID int
+		shouldError bool
+	}{
+		{"random",  0, true},
+		{"-",  0, true},
+		{"-",  0, true},
+		// valid values
+		{"BTC_USDT",  0, false},
+		{"BTC_USDT",  1234, false},
+	}
+
+	for _, c := range testTable {
+		req, err := cl.cancelAllOrder(c.reqID, c.instrumentName)
+		if c.shouldError {
+			assert.NotNil(t, err, c)
+			assert.Nil(t, req, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, privateCancelAllOrders, req.Method)
 			assert.Equal(t, c.instrumentName, req.Params["instrument_name"])
 			if c.reqID > 0 {
 				assert.Equal(t, c.reqID, req.Id)
