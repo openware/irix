@@ -59,7 +59,7 @@ func (c *Client) subscribe(channels []string) (req *Request, err error) {
 	req = &Request{
 		Id:     int(nonce),
 		Method: subscribe,
-		Params: kvParams{"channels": channels},
+		Params: KVParams{"channels": channels},
 		Nonce:  nonce,
 	}
 	return
@@ -74,7 +74,7 @@ func (c *Client) unsubscribe(channels []string) (req *Request, err error) {
 	req = &Request{
 		Id:     int(nonce),
 		Method: unsubscribe,
-		Params: kvParams{"channels": channels},
+		Params: KVParams{"channels": channels},
 		Nonce:  nonce,
 	}
 	return
@@ -101,7 +101,7 @@ func (c *Client) createOrderLimitRequest(
 	return &Request{
 		Id:     reqID,
 		Method: privateCreateOrder,
-		Params: kvParams{
+		Params: KVParams{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
 			"type":            "LIMIT",
@@ -130,7 +130,7 @@ func (c *Client) createOrderMarketRequest(
 	return &Request{
 		Id:     reqID,
 		Method: privateCreateOrder,
-		Params: kvParams{
+		Params: KVParams{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
 			"type":            "MARKET",
@@ -161,7 +161,7 @@ func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, 
 	req = &Request{
 		Id:     id,
 		Method: privateCancelOrder,
-		Params: kvParams{
+		Params: KVParams{
 			"instrument_name": market,
 			"order_id":        remoteID,
 		},
@@ -183,7 +183,7 @@ func (c *Client) cancelAllOrder(reqID int, market string) (req *Request, err err
 	req = &Request{
 		Id:     id,
 		Method: privateCancelAllOrders,
-		Params: kvParams{
+		Params: KVParams{
 			"instrument_name": market,
 		},
 		Nonce: generateNonce(),
@@ -204,7 +204,7 @@ func (c *Client) getOrderDetail(reqID int, remoteID string) (req *Request, err e
 	req = &Request{
 		Id:     reqID,
 		Method: privateGetOrderDetail,
-		Params: kvParams{
+		Params: KVParams{
 			"order_id": remoteID,
 		},
 		Nonce: nonce,
@@ -216,7 +216,7 @@ func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetOrderDetail,
-		Params: kvParams{
+		Params: KVParams{
 			"order_id": remoteID,
 		},
 		ApiKey: c.key,
@@ -231,7 +231,7 @@ func (c *Client) restGetBalanceRequest(reqID int) *Request {
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetAccountSummary,
-		Params: kvParams{},
+		Params: KVParams{},
 		ApiKey: c.key,
 		Nonce:  generateNonce(),
 	}
@@ -240,26 +240,46 @@ func (c *Client) restGetBalanceRequest(reqID int) *Request {
 	return r
 }
 
-func (c *Client) restGetTradesRequest(reqID int, market string) *Request {
+func (c *Client) privateGetTrades(reqID int, params *TradeParams) (*Request, error) {
+	pr, err := params.Encode()
+	if err != nil {
+		return nil, err
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetTrades,
-		Params: kvParams{
-			"instrument_name": market,
-		},
-		ApiKey: c.key,
-		Nonce:  generateNonce(),
+		Params: pr,
+		Nonce:  nonce,
 	}
-
-	c.generateSignature(r)
-	return r
+	return r, nil
+}
+func (c *Client) privateGetOrderHistory(reqID int, params *TradeParams) (*Request, error) {
+	pr, err := params.Encode()
+	if err != nil {
+		return nil, err
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
+	r := &Request{
+		Id:     reqID,
+		Method: privateGetOrderHistory,
+		Params: pr,
+		Nonce:  nonce,
+	}
+	return r, nil
 }
 
 func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageSize int) *Request {
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetOpenOrders,
-		Params: kvParams{
+		Params: KVParams{
 			"instrument_name": market,
 			"page":            strconv.Itoa(page),
 			"page_size":       strconv.Itoa(pageSize),
@@ -289,7 +309,7 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 		err = errors.New("invalid depth value")
 		return
 	}
-	params := kvParams{
+	params := KVParams{
 		"instrument_name": instrument,
 	}
 	if depth == 0 {
@@ -319,7 +339,7 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 		err = errors.New("invalid interval")
 		return
 	}
-	params := kvParams{
+	params := KVParams{
 		"instrument_name": instrumentName,
 		"interval":        period.Encode(),
 	}
@@ -333,7 +353,7 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 	return
 }
 func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
-	params := kvParams{}
+	params := KVParams{}
 	if instrumentName != "" {
 		if err = validInstrument(instrumentName); err != nil {
 			return
@@ -347,7 +367,7 @@ func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
 	return
 }
 func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error) {
-	params := kvParams{}
+	params := KVParams{}
 	if instrumentName != "" {
 		if err = validInstrument(instrumentName); err != nil {
 			return
@@ -368,7 +388,7 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	if err = isValidCurrency(currency); err != nil {
 		return
 	}
-	params := kvParams{
+	params := KVParams{
 		"currency": currency,
 	}
 	nonce := generateNonce()
@@ -383,7 +403,7 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 
 
 func (c *Client) getAccountSummary(instrumentName string) (req *Request, err error) {
-	params := kvParams{}
+	params := KVParams{}
 	if instrumentName != "" {
 		// TODO: do small validation. ask the team how the validation done in the backend
 		code := currency.NewCode(instrumentName).String()
@@ -407,7 +427,7 @@ func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
 		Id: int(nonce),
 		Method: privateSetCancelOnDisconnect,
 		Nonce: nonce,
-		Params: kvParams{
+		Params: KVParams{
 			"scope": scope,
 		},
 	}
@@ -520,7 +540,7 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 	// validate cases based on the requirements
 
 	nonce := generateNonce()
-	params := kvParams{
+	params := KVParams{
 		"instrument_name": instrumentName,
 		"side": side.String(),
 		"type": strings.ReplaceAll(orderType.String(), " ", "-"),
@@ -576,7 +596,7 @@ func (c *Client) getOpenOrders(market string, pageSize, page int) (req *Request,
 	if pageSize == 0 {
 		pageSize = 20
 	}
-	params := kvParams{
+	params := KVParams{
 		"page_size": pageSize,
 		"page": page,
 	}

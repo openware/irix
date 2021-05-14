@@ -530,6 +530,7 @@ func TestClient_CancelAllOrders(t *testing.T) {
 }
 
 func TestClient_GetOrderDetail(t *testing.T) {
+	t.Parallel()
 	testTable := []struct{
 		orderId string
 		reqID int
@@ -559,22 +560,23 @@ func TestClient_GetOrderDetail(t *testing.T) {
 }
 
 func TestClient_GetOpenOrders(t *testing.T) {
+	t.Parallel()
 	testTable := []struct{
 		instrumentName string
-		pageSize int
-		page int
-		expectedParams kvParams
-		shouldError bool
+		pageSize       int
+		page           int
+		expectedParams KVParams
+		shouldError    bool
 	}{
 		{"-", 0, 0, nil, true},
 		{"BTC", 0, 0, nil, true},
 		{"BTC_USDT", -1, 0, nil, true},
 		{"BTC_USDT", 0, -1, nil, true},
 		// valid values
-		{"", 0, 0, kvParams{"page_size": 20, "page": 0}, false},
-		{"BTC_USDT", 0, 0, kvParams{"instrument_name": "BTC_USDT", "page_size": 20, "page": 0}, false},
-		{"BTC_USDT", 10, 0, kvParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 0}, false},
-		{"BTC_USDT", 10, 1, kvParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
+		{"", 0, 0, KVParams{"page_size": 20, "page": 0}, false},
+		{"BTC_USDT", 0, 0, KVParams{"instrument_name": "BTC_USDT", "page_size": 20, "page": 0}, false},
+		{"BTC_USDT", 10, 0, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 0}, false},
+		{"BTC_USDT", 10, 1, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
 	}
 	for _, c := range testTable {
 		req, err := cl.getOpenOrders(c.instrumentName, c.pageSize, c.page)
@@ -586,6 +588,97 @@ func TestClient_GetOpenOrders(t *testing.T) {
 			assert.NotNil(t, req, c)
 			assert.Equal(t, privateGetOpenOrders, req.Method)
 			assert.Equal(t, c.expectedParams, req.Params)
+		}
+	}
+}
+
+func TestClient_PrivateGetTrades(t *testing.T) {
+	t.Parallel()
+	testTable := []struct {
+		id int
+		arg *TradeParams
+		shouldError bool
+	}{
+		{0, &TradeParams{Market: "-"}, true},
+		{0, &TradeParams{Market: "BTC"}, true},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: -1 }, true},
+		{0, &TradeParams{Market: "BTC_USDT", EndTS: -1}, true},
+		{0, &TradeParams{Market: "BTC_USDT", PageSize: -1}, true},
+		{0, &TradeParams{Market: "BTC_USDT",  Page: -1}, true},
+		// start is ahead of end
+		{0, &TradeParams{StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now()) }, true},
+		// gap is above 24 hours
+		{0, &TradeParams{StartTS: timestampMs(time.Now().Add(time.Hour * -25)), EndTS: timestampMs(time.Now()) }, true},
+		// valid values
+		{12121212, nil, false},
+		{0, &TradeParams{}, false},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: timestampMs(time.Now().Add(time.Hour * -24))}, false},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: timestampMs(time.Now().Add(time.Second * -5))}, false},
+		{0, &TradeParams{Market: "BTC_USDT", EndTS: timestampMs(time.Now().Add(time.Hour * -23))}, false},
+		{0, &TradeParams{Page: 20}, false},
+		{0, &TradeParams{PageSize: 1}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.privateGetTrades(c.id, c.arg)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, req)
+		} else {
+			pr, _ := c.arg.Encode()
+			assert.NotNil(t, req)
+			assert.Nil(t, err)
+			assert.Equal(t, privateGetTrades, req.Method)
+			assert.Equal(t, pr, req.Params)
+			if c.id > 0 {
+				assert.Equal(t, c.id, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
+			}
+		}
+	}
+}
+func TestClient_PrivateGetOrderHistory(t *testing.T) {
+	t.Parallel()
+	testTable := []struct {
+		id int
+		arg *TradeParams
+		shouldError bool
+	}{
+		{0, &TradeParams{Market: "-"}, true},
+		{0, &TradeParams{Market: "BTC"}, true},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: -1 }, true},
+		{0, &TradeParams{Market: "BTC_USDT", EndTS: -1}, true},
+		{0, &TradeParams{Market: "BTC_USDT", PageSize: -1}, true},
+		{0, &TradeParams{Market: "BTC_USDT",  Page: -1}, true},
+		// start is ahead of end
+		{0, &TradeParams{StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now()) }, true},
+		// gap is above 24 hours
+		{0, &TradeParams{StartTS: timestampMs(time.Now().Add(time.Hour * -25)), EndTS: timestampMs(time.Now()) }, true},
+		// valid values
+		{12121212, nil, false},
+		{0, &TradeParams{}, false},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: timestampMs(time.Now().Add(time.Hour * -24))}, false},
+		{0, &TradeParams{Market: "BTC_USDT", StartTS: timestampMs(time.Now().Add(time.Second * -5))}, false},
+		{0, &TradeParams{Market: "BTC_USDT", EndTS: timestampMs(time.Now().Add(time.Hour * -23))}, false},
+		{0, &TradeParams{Page: 20}, false},
+		{0, &TradeParams{PageSize: 1}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.privateGetOrderHistory(c.id, c.arg)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, req)
+		} else {
+			pr, _ := c.arg.Encode()
+			assert.NotNil(t, req)
+			assert.Nil(t, err)
+			assert.Equal(t, privateGetOrderHistory, req.Method)
+			assert.Equal(t, pr, req.Params)
+			if c.id > 0 {
+				assert.Equal(t, c.id, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
+			}
 		}
 	}
 }

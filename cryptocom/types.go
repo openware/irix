@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 )
@@ -24,7 +25,7 @@ type Request struct {
 	ApiKey    string
 	Signature string
 	Nonce     int64
-	Params    kvParams
+	Params    KVParams
 }
 
 type Response struct {
@@ -176,7 +177,7 @@ type OrderDetailResponse struct {
 }
 type OrderDetail struct {
 	TradeList []Trade `json:"trade_list"`
-	OrderInfo Order `json:"order_info"`
+	OrderInfo Order   `json:"order_info"`
 }
 type Trade struct {
 	Side           string  `json:"side"`
@@ -205,10 +206,87 @@ type OrderInfo struct {
 	TimeInForce        string `json:"time_in_force"`
 	ExecInst           string `json:"exec_inst"`
 }
-type kvParams map[string]interface{}
+type OpenOrdersResponse struct {
+	Result OpenOrdersResult `json:"result"`
+}
+type OpenOrdersResult struct {
+	Count     int         `json:"count"`
+	OrderList []OrderInfo `json:"order_list"`
+}
+type TradeResponse struct {
+	Result TradeResult `json:"result"`
+}
+type TradeResult struct {
+	TradeList []Trade `json:"trade_list"`
+}
+type KVParams map[string]interface{}
+type TradeParams struct {
+	Market   string
+	StartTS  int64
+	EndTS    int64
+	PageSize int
+	Page     int
+}
+
+func (t *TradeParams) Validate() error {
+	return tryOrError(func() error {
+		if t.Market == "" {
+			return nil
+		}
+		return validInstrument(t.Market)
+	}, func() error {
+		// timestamp validation
+		if t.StartTS > 0 && t.EndTS > 0 {
+			if t.StartTS > t.EndTS {
+				return errors.New("start timestamp is ahead of end timestamp")
+			}
+			start := time.Unix(t.StartTS/1000, 0)
+			end := time.Unix(t.EndTS/1000, 0)
+			diff := end.Sub(start).Hours()
+			if diff > 24 {
+				return errors.New("max date range is 24 hours")
+			}
+		}
+		if t.StartTS < 0 {
+			return errors.New("start timestamp should be positive number")
+		}
+		if t.EndTS < 0 {
+			return errors.New("end timestamp should be positive number")
+		}
+		return nil
+	}, func() error {
+		if t.PageSize < 0 {
+			return errors.New("page size should be at least 0")
+		}
+		if t.PageSize > 200 {
+			return errors.New("max page size is 200")
+		}
+		if t.Page < 0 {
+			return errors.New("page should be at least 0")
+		}
+		return nil
+	})
+}
+
+func (t *TradeParams) Encode() (KVParams, error) {
+	if t == nil {
+		return KVParams{}, nil
+	}
+	err := t.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return KVParams{
+		"end_ts":          t.EndTS,
+		"instrument_name": t.Market,
+		"start_ts":        t.StartTS,
+		"page":            t.Page,
+		"page_size":       t.PageSize,
+	}, nil
+}
 
 func generateNonce() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return timestampMs(time.Now())
 }
 
 func (r *Request) Encode() ([]byte, error) {

@@ -18,7 +18,7 @@ func (c *Client) RestGetBalance(reqID int) (Response, error) {
 }
 
 func (c *Client) RestGetTrades(reqID int, market string) (Response, error) {
-	r := c.restGetTradesRequest(reqID, market)
+	r, _ := c.privateGetTrades(reqID, &TradeParams{Market: market})
 	return c.send(r)
 }
 

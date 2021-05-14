@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/openware/pkg/validate"
 	"strings"
+	"time"
 )
 
 func tryOrError(checks ...validate.Check) (err error) {
@@ -13,6 +14,9 @@ func tryOrError(checks ...validate.Check) (err error) {
 		}
 	}
 	return
+}
+func timestampMs(t time.Time) int64 {
+	return t.UnixNano() / int64(time.Millisecond)
 }
 func validInstrument(instrument string) (err error) {
 	splits := strings.Split(instrument, "_")
