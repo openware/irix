@@ -533,3 +533,32 @@ func TestClient_CancelAllOrders(t *testing.T) {
 		}
 	}
 }
+
+func TestClient_GetOrderDetail(t *testing.T) {
+	testTable := []struct{
+		orderId string
+		reqID int
+		shouldError bool
+	}{
+		{"", 0, true},
+		{"-", 0, true},
+		// valid cases
+		{"123234242", 0, false},
+		{"123234242", 1212, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.getOrderDetail(c.reqID, c.orderId)
+		if c.shouldError {
+			assert.Nil(t, req, c)
+			assert.NotNil(t, err, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			if c.reqID > 0 {
+				assert.Equal(t, c.reqID, req.Id)
+			}
+			assert.Equal(t, privateGetOrderDetail, req.Method)
+			assert.Equal(t, c.orderId, req.Params["order_id"])
+		}
+	}
+}

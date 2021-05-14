@@ -191,15 +191,25 @@ func (c *Client) cancelAllOrder(reqID int, market string) (req *Request, err err
 	return
 }
 
-func (c *Client) getOrderDetailsRequest(reqID int, remoteID string) *Request {
-	return &Request{
+func (c *Client) getOrderDetail(reqID int, remoteID string) (req *Request, err error) {
+	regex := regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]+)$")
+	if remoteID == "" || !regex.MatchString(remoteID) {
+		err = errors.New("invalid order id")
+		return
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
+	req = &Request{
 		Id:     reqID,
 		Method: privateGetOrderDetail,
 		Params: map[string]interface{}{
 			"order_id": remoteID,
 		},
-		Nonce: generateNonce(),
+		Nonce: nonce,
 	}
+	return
 }
 
 func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request {
