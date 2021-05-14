@@ -4,50 +4,50 @@ import "github.com/openware/pkg/order"
 
 // basic configuration
 const (
-	host = "api.crypto.com"
-	streamHost = "stream.crypto.com"
-	sandboxHost = "uat-api.3ona.co"
+	host              = "api.crypto.com"
+	streamHost        = "stream.crypto.com"
+	sandboxHost       = "uat-api.3ona.co"
 	sandboxStreamHost = "uat-stream.3ona.co"
-	apiVersion = "v2"
+	apiVersion        = "v2"
 )
 
 // available methods
 const (
 	// available in both ws and rest
-	publicGetInstruments = "public/get-instruments"
-	privateCreateWithdrawal = "private/create-withdrawal"
+	publicGetInstruments        = "public/get-instruments"
+	privateCreateWithdrawal     = "private/create-withdrawal"
 	privateGetWithdrawalHistory = "private/get-withdrawal-history"
-	privateGetAccountSummary = "private/get-account-summary"
-	privateCreateOrder = "private/create-order"
-	privateCancelOrder = "private/cancel-order"
-	privateCancelAllOrders = "private/cancel-all-orders"
-	privateGetOrderHistory = "private/get-order-history"
-	privateGetOpenOrders = "private/get-open-orders"
-	privateGetOrderDetail = "private/get-order-detail"
-	privateGetTrades = "private/get-trades"
-
+	privateGetAccountSummary    = "private/get-account-summary"
+	privateCreateOrder          = "private/create-order"
+	privateCancelOrder          = "private/cancel-order"
+	privateCancelAllOrders      = "private/cancel-all-orders"
+	privateGetOrderHistory      = "private/get-order-history"
+	privateGetOpenOrders        = "private/get-open-orders"
+	privateGetOrderDetail       = "private/get-order-detail"
+	privateGetTrades            = "private/get-trades"
 
 	// only in rest
-	publicGetBook = "public/get-book"
-	publicGetCandlestick = "public/get-candlestick"
-	publicGetTicker = "public/get-ticker"
-	publicGetTrades = "public/get-trades"
+	publicGetBook            = "public/get-book"
+	publicGetCandlestick     = "public/get-candlestick"
+	publicGetTicker          = "public/get-ticker"
+	publicGetTrades          = "public/get-trades"
 	privateGetDepositHistory = "private/get-deposit-history"
 	privateGetDepositAddress = "private/get-deposit-address"
 
 	// only in ws
-	publicAuth = "public/auth"
-	publicRespondHeartbeat = "public/respond-heartbeat"
+	publicAuth                   = "public/auth"
+	publicRespondHeartbeat       = "public/respond-heartbeat"
 	privateSetCancelOnDisconnect = "private/set-cancel-on-disconnect"
 	privateGetCancelOnDisconnect = "private/get-cancel-on-disconnect"
-	subscribe = "subscribe"
-	unsubscribe = "subscribe"
+	subscribe                    = "subscribe"
+	unsubscribe                  = "subscribe"
 	// ws endpoints
 	userEndpoint   = "user"
 	marketEndpoint = "market"
 )
 
 type Interval int
+
 const (
 	Minute1 Interval = iota + 1
 	Minute5
@@ -95,16 +95,18 @@ func (c Interval) Encode() string {
 }
 
 const (
-	ScopeAccount string = "ACCOUNT"
-	ScopeConnection = "CONNECTION"
+	ScopeAccount    string = "ACCOUNT"
+	ScopeConnection        = "CONNECTION"
 )
 
 // rate limit
-const (
+const ()
 
-)
 // extend order types
 const (
 	TakeProfitLimit order.Type = "TAKE_PROFIT_LIMIT"
 	StopLoss        order.Type = "STOP_LOSS"
+	FillOrKill      order.Type = "FILL_OR_KILL"
+	GoodTillCancel order.Type = "GOOD_TILL_CANCEL"
+	PostOnly order.Type = "POST_ONLY"
 )

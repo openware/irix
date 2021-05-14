@@ -2,9 +2,9 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/order"
-	"github.com/openware/pkg/validate"
 	"regexp"
 	"strconv"
 	"strings"
@@ -400,14 +400,6 @@ func isValidCurrency(code string) (err error) {
 	}
 	return
 }
-func tryOrError(checks ...validate.Check) (err error) {
-	for _, fn := range checks {
-		if err = fn(); err != nil {
-			return err
-		}
-	}
-	return
-}
 func (c *Client) createOrder(instrumentName string, side order.Side, orderType order.Type, price, quantity float64, orderOption *OrderOption) (req *Request, err error){
 
 	if err = tryOrError(func() error {
@@ -433,6 +425,17 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 			if price <= 0 {
 				err = errors.New("price required")
 				return
+			}
+			if orderOption != nil {
+				if orderOption.ExecInst != "" && orderOption.ExecInst != PostOnly.String() {
+					err = fmt.Errorf("exec_inst value not allowed. either leave it empty or set it to %s", PostOnly)
+					return
+				}
+				if orderOption.TimeInForce != "" &&
+					!(orderOption.TimeInForce == GoodTillCancel.String() || orderOption.TimeInForce == FillOrKill.String() || orderOption.TimeInForce == order.ImmediateOrCancel.String()) {
+					err = fmt.Errorf("time_in_force value not allowed. either leave it empty or set it to %s, %s, or %s", GoodTillCancel, FillOrKill, order.ImmediateOrCancel)
+					return
+				}
 			}
 		}
 		return
