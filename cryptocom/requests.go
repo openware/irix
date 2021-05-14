@@ -444,13 +444,6 @@ func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
 	return
 }
 
-func isValidCurrency(code string) (err error) {
-	regex := regexp.MustCompile("^[a-zA-Z0-9]+$")
-	if code == "" || len(code) < 3 || !regex.MatchString(code) {
-		err = errors.New("invalid code")
-	}
-	return
-}
 func (c *Client) createOrder(instrumentName string, side order.Side, orderType order.Type, price, quantity float64, orderOption *OrderOption) (req *Request, err error){
 
 	if err = tryOrError(func() error {
@@ -581,15 +574,7 @@ func (c *Client) getOpenOrders(market string, pageSize, page int) (req *Request,
 		}
 		return validInstrument(market)
 	}, func() error {
-		if pageSize < 0 {
-			return errors.New("invalid page size value. minimum is 0")
-		}
-		return nil
-	}, func() error {
-		if page < 0 {
-			return errors.New("invalid page value. minimum is 0")
-		}
-		return nil
+		return validPagination(pageSize, page)
 	}); err != nil {
 		return
 	}
@@ -606,6 +591,22 @@ func (c *Client) getOpenOrders(market string, pageSize, page int) (req *Request,
 	req = &Request{
 		Method: privateGetOpenOrders,
 		Params: params,
+	}
+	return
+}
+func (c *Client) createWithdrawal(reqID int, params WithdrawParams) (req *Request, err error) {
+	pr, err := params.Encode()
+	if err != nil {
+		return
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
+	req = &Request{
+		Id: reqID,
+		Method: privateCreateWithdrawal,
+		Params: pr,
 	}
 	return
 }

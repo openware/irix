@@ -682,3 +682,47 @@ func TestClient_PrivateGetOrderHistory(t *testing.T) {
 		}
 	}
 }
+
+func TestClient_CreateWithdrawal(t *testing.T)  {
+	t.Parallel()
+	testTable := []struct {
+		id int
+		arg WithdrawParams
+		shouldError bool
+	}{
+		{0, WithdrawParams{},  true},
+		{0, WithdrawParams{Currency: "-"},  true},
+		{0, WithdrawParams{Currency: "BTC"},  true},
+		{0, WithdrawParams{Currency: "BTC", Amount: -1},  true},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.2222}, true},
+		// valid cases
+		{
+			0,
+			WithdrawParams{Currency: "BTC", Amount: 0.00222, Address: "1CFNjwLjZdSKB8nZopxhLaR8vvqaQKD3Bi"},
+			false,
+		},
+		{
+			0,
+			WithdrawParams{Currency: "BTC", Amount: 0.00222, Address: "1CFNjwLjZdSKB8nZopxhLaR8vvqaQKD3Bi", AddressTag: "some address tag"},
+			false,
+		},
+		{
+			0,
+			WithdrawParams{Currency: "BTC", Amount: 0.00222, Address: "1CFNjwLjZdSKB8nZopxhLaR8vvqaQKD3Bi", WithdrawID: "some withdraw id" },
+			false,
+		},
+	}
+	for _, c := range testTable {
+		req, err := cl.createWithdrawal(c.id, c.arg)
+		if c.shouldError {
+			assert.Nil(t, req, c)
+			assert.NotNil(t, err, c)
+		} else {
+			pr, _ := c.arg.Encode()
+			assert.Nil(t, err)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, privateCreateWithdrawal, req.Method)
+			assert.Equal(t, pr, req.Params)
+		}
+	}
+}
