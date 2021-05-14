@@ -84,12 +84,12 @@ func (c *Client) RestGetPublicTrades(instrumentName string) (res PublicTradeResu
 	}
 	return
 }
-func (c *Client) RestGetDepositAddress(currency string) (res DepositResult, err error) {
+func (c *Client) RestGetDepositAddress(currency string) (res DepositAddressResult, err error) {
 	req, err := c.getDepositAddress(currency)
 	if err != nil {
 		return
 	}
-	var result DepositResponse
+	var result DepositAddressResponse
 	_, err = c.rest.Send("POST", req, &result)
 	if err == nil {
 		res = result.Result

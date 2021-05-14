@@ -54,7 +54,7 @@ func TestConnectionWrite(t *testing.T) {
 		req := client.authRequest()
 		client.sendPrivateRequest(req)
 
-		expected := fmt.Sprintf("{\"api_key\":\"test\",\"id\":1,\"method\":\"public/auth\",\"nonce\":\"%v\",\"sig\":\"%v\"}", req.Nonce, req.Signature)
+		expected := fmt.Sprintf("{\"api_key\":\"test\",\"id\":%d,\"method\":\"public/auth\",\"nonce\":%v,\"sig\":\"%v\"}", req.Id, req.Nonce, req.Signature)
 		assert.Equal(t, expected, privateBuffer.String())
 	})
 }

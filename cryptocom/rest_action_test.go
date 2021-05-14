@@ -688,3 +688,144 @@ func TestClient_PrivateGetAccountSummary(t *testing.T) {
 		}
 	}
 }
+func TestClient_GetDepositAddress(t *testing.T)  {
+	method := privateGetDepositAddress
+
+	testCases := []struct {
+		instrumentName        string
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT", nil, 400, true, false},
+		{"BTC_", nil, 400, true, false},
+		{"_", nil, 400, true, false},
+		{"", nil, 400, true, false},
+		// invalid cases
+		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// valid cases
+		{"BTC", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
+			Currency:  "BTC",
+			Network: "CRO",
+		})), 200, false, false},
+		{"USDT", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
+			Currency:  "BTC",
+			Network: "CRO",
+		})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{
+			key: "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestGetDepositAddress(r.instrumentName)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			assert.Len(t, mockClient.Calls, 1, r)
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			b, _ := ioutil.ReadAll(req.Body)
+			var body map[string]interface{}
+			_ = json.Unmarshal(b, &body)
+			params := body["params"].(map[string]interface{})
+			assert.Equal(t, "POST", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			if r.instrumentName != "" {
+				assert.Equal(t, r.instrumentName, params["currency"])
+			} else {
+				assert.Equal(t, map[string]interface{}{}, params)
+			}
+			assert.NotEmpty(t, body["api_key"])
+			assert.NotEmpty(t, body["sig"])
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			assert.NotNil(t, res.DepositAddressList)
+		}
+	}
+}
+
+func TestClient_GetDepositHistory(t *testing.T)  {
+	method := privateGetDepositAddress
+
+	testCases := []struct {
+		instrumentName        string
+		responseBody          []byte
+		responseCode          int
+		shouldErrorValidation bool
+		shouldError           bool
+	}{
+		// invalid arguments
+		{"_USDT", nil, 400, true, false},
+		{"BTC_", nil, 400, true, false},
+		{"_", nil, 400, true, false},
+		{"", nil, 400, true, false},
+		// invalid cases
+		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, true, false},
+		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
+		// valid cases
+		{"BTC", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
+			Currency:  "BTC",
+			Network: "CRO",
+		})), 200, false, false},
+		{"USDT", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
+			Currency:  "BTC",
+			Network: "CRO",
+		})), 200, false, false},
+	}
+	for _, r := range testCases {
+		mockClient := &httpClientMock{}
+		mockResponse := &http.Response{
+			StatusCode: r.responseCode,
+			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		cli := &Client{
+			key: "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestGetDepositAddress(r.instrumentName)
+		if r.shouldErrorValidation {
+			mockClient.AssertNotCalled(t, "Do")
+		} else {
+			assert.Len(t, mockClient.Calls, 1, r)
+			req := mockClient.Calls[0].Arguments[0].(*http.Request)
+			b, _ := ioutil.ReadAll(req.Body)
+			var body map[string]interface{}
+			_ = json.Unmarshal(b, &body)
+			params := body["params"].(map[string]interface{})
+			assert.Equal(t, "POST", req.Method)
+			assert.Contains(t, req.URL.Path, method)
+			if r.instrumentName != "" {
+				assert.Equal(t, r.instrumentName, params["currency"])
+			} else {
+				assert.Equal(t, map[string]interface{}{}, params)
+			}
+			assert.NotEmpty(t, body["api_key"])
+			assert.NotEmpty(t, body["sig"])
+			mockClient.AssertExpectations(t)
+		}
+		if r.shouldError {
+			assert.NotNil(t, err, r)
+		} else if !r.shouldErrorValidation && !r.shouldError {
+			assert.Nil(t, err, r)
+			assert.NotNil(t, res.DepositAddressList)
+		}
+	}
+}

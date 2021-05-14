@@ -3,6 +3,8 @@ package cryptocom
 import (
 	"errors"
 	"github.com/openware/pkg/currency"
+	"github.com/openware/pkg/order"
+	"github.com/openware/pkg/validate"
 	"regexp"
 	"strconv"
 	"strings"
@@ -345,6 +347,7 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	return
 }
 
+
 func (c *Client) getAccountSummary(instrumentName string) (req *Request, err error) {
 	params := map[string]interface{}{}
 	if instrumentName != "" {
@@ -395,5 +398,125 @@ func isValidCurrency(code string) (err error) {
 	if code == "" || len(code) < 3 || !regex.MatchString(code) {
 		err = errors.New("invalid code")
 	}
+	return
+}
+func tryOrError(checks ...validate.Check) (err error) {
+	for _, fn := range checks {
+		if err = fn(); err != nil {
+			return err
+		}
+	}
+	return
+}
+func (c *Client) createOrder(instrumentName string, side order.Side, orderType order.Type, price, quantity float64, orderOption *OrderOption) (req *Request, err error){
+
+	if err = tryOrError(func() error {
+		return validInstrument(instrumentName)
+	}, func() (err error) {
+		if side != order.Buy && side != order.Sell {
+			err = errors.New("invalid order side")
+		}
+		return
+	}, func() error {
+		switch orderType {
+		case order.Limit, order.StopLimit, order.Market, TakeProfitLimit, StopLoss, order.TakeProfit:
+			return nil
+		default:
+			return errors.New("invalid order type")
+		}
+	}, func() (err error) {
+		if orderType == order.Limit {
+			if quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if price <= 0 {
+				err = errors.New("price required")
+				return
+			}
+		}
+		return
+	}, func() (err error) {
+		if orderType == order.Market {
+			if side == order.Buy && (orderOption == nil || orderOption.Notional <= 0) {
+				err = errors.New("notional required")
+				return
+			}
+			if side == order.Sell && quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+		}
+		return
+	}, func() (err error) {
+		if orderType == order.StopLimit || orderType == TakeProfitLimit {
+			if price <= 0 {
+				err = errors.New("price required")
+				return
+			}
+			if quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if orderOption == nil || orderOption.TriggerPrice <= 0 {
+				err = errors.New("trigger_price required")
+				return
+			}
+		}
+		return
+	}, func() (err error) {
+		if orderType == StopLoss || orderType == order.TakeProfit {
+			if side == order.Buy && (orderOption == nil || orderOption.Notional <= 0) {
+				err = errors.New("notional required")
+				return
+			}
+			if side == order.Sell && quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if orderOption == nil || orderOption.TriggerPrice <= 0 {
+				err = errors.New("trigger_price required")
+				return
+			}
+		}
+		return
+	}); err != nil {
+		return
+	}
+	// validate cases based on the requirements
+
+	nonce := generateNonce()
+	params := map[string]interface{}{
+		"instrument_name": instrumentName,
+		"side": side.String(),
+		"type": strings.ReplaceAll(orderType.String(), " ", "-"),
+		"price": price,
+		"quantity": quantity,
+	}
+	if orderOption != nil {
+		if orderOption.Notional > 0 {
+			params["notional"] = orderOption.Notional
+		}
+		if orderOption.TriggerPrice > 0 {
+			params["notional"] = orderOption.TriggerPrice
+		}
+		// set params only if order type is order.Limit
+		if orderOption.TimeInForce != "" && orderType == order.Limit {
+			params["time_in_force"] = orderOption.TimeInForce
+		}
+		if orderOption.ExecInst != "" && orderType == order.Limit {
+			params["exec_inst"] = orderOption.ExecInst
+		}
+		if orderOption.ClientOid != "" {
+			params["client_oid"] = orderOption.ClientOid
+		}
+	}
+	req = &Request{
+		Id:        int(nonce),
+		Method:    privateCreateOrder,
+		Nonce:     nonce,
+		Params:    params,
+	}
+	c.generateSignature(req)
 	return
 }

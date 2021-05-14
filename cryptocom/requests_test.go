@@ -1,8 +1,10 @@
 package cryptocom
 
 import (
+	"github.com/openware/pkg/order"
 	"github.com/stretchr/testify/assert"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -230,6 +232,36 @@ func TestGetAccountSummary(t *testing.T)  {
 		}
 	}
 }
+func TestGetDepositHistory(t *testing.T)  {
+	testTable := []struct{
+		instrumentName string
+		shouldError bool
+	}{
+		{"_", true},
+		{"BTC_", true},
+		{"_USDT", true},
+		{"BTC_USDT", true},
+		{"", true},
+		// valid inputs
+		{"BTC", false},
+		{"USDT", false},
+	}
+	for _, arg := range testTable {
+		r, err := cl.getDepositAddress(arg.instrumentName)
+		if arg.shouldError {
+			assert.NotNil(t, err, arg)
+			assert.Nil(t, r, arg)
+		} else {
+			assert.Nil(t, err, arg)
+			assert.Equal(t, privateGetDepositAddress, r.Method, arg)
+			if arg.instrumentName != "" {
+				assert.Equal(t, arg.instrumentName, r.Params["currency"], arg)
+			} else {
+				assert.Nil(t, r.Params["currency"])
+			}
+		}
+	}
+}
 
 func TestRespondHeartbeat(t *testing.T) {
 	t.Parallel()
@@ -347,6 +379,85 @@ func TestUnsubscribeChannel(t *testing.T) {
 			assert.NotNil(t, req, c)
 			assert.Equal(t, unsubscribe, req.Method, c)
 			assert.Equal(t, c.channel, req.Params["channels"], c)
+		}
+	}
+}
+
+func TestCreateOrder(t *testing.T)  {
+	testTable := []struct{
+		instrumentName string
+		side order.Side
+		orderType order.Type
+		price float64
+		quantity float64
+		orderOption *OrderOption
+		shouldError bool
+	}{
+		{"random", order.AnySide, order.AnyType, 0, 0, nil, true},
+		{"BTC_USDT", order.AnySide, order.AnyType, 0, 0,  nil, true},
+		{"BTC_USDT", order.Sell, order.AnyType, -1, 0, nil, true},
+		{"BTC_USDT", order.Sell, order.AnyType, 0.001, 0, nil, true},
+		{"BTC_USDT", order.Buy, order.AnyType, 0.001, 0.0001, nil, true},
+		// edge cases but should fail
+		{"BTC_USDT", order.Buy, order.Limit, 0, 0.0001, nil, true},
+		{"BTC_USDT", order.Sell, order.Limit, 0.001, 0, nil, true},
+		{"BTC_USDT", order.Buy, order.Market, 0, 0, nil, true},
+		{"BTC_USDT", order.Buy, order.Market, 0, 0, &OrderOption{Notional: 0}, true},
+		{"BTC_USDT", order.Sell, order.Market, 0, 0, nil, true},
+		{"BTC_USDT", order.Sell, order.StopLimit, 0, 0, nil, true},
+		{"BTC_USDT", order.Sell, order.StopLimit, 0.1, 0, nil, true},
+		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, nil, true},
+		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, &OrderOption{}, true},
+		// TODO: switch to constant when the PR is merged
+		{"BTC_USDT", order.Sell, TakeProfitLimit, 0, 0, nil, true},
+		{"BTC_USDT", order.Sell, TakeProfitLimit, 0.1, 0, nil, true},
+		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, nil, true},
+		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, &OrderOption{}, true},
+		// TODO: make PR to pkg
+		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, nil, true},
+		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
+		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
+		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0.1, TriggerPrice: 0}, true},
+		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, nil, true},
+		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
+		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
+		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0.1, TriggerPrice: 0}, true},
+		// valid cases
+		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, nil, false},
+		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001}, false},
+	}
+	for _, c := range testTable {
+		req, err := cl.createOrder(c.instrumentName, c.side, c.orderType, c.price, c.quantity, c.orderOption)
+		if c.shouldError {
+			assert.NotNil(t, err, c)
+			assert.Nil(t, req, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, privateCreateOrder, req.Method, c)
+			assert.Equal(t, c.instrumentName, req.Params["instrument_name"])
+			assert.Equal(t, c.side.String(), req.Params["side"])
+			assert.Equal(t, strings.ReplaceAll(c.orderType.String(), " ", "-"), req.Params["type"])
+			assert.Equal(t, c.quantity, req.Params["quantity"])
+			assert.Equal(t, c.price, req.Params["price"])
+			if c.orderOption != nil {
+				if c.orderOption.Notional > 0 {
+					assert.Equal(t, c.orderOption.Notional, req.Params["notional"])
+				}
+				if c.orderOption.TriggerPrice > 0 {
+					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["trigger_price"])
+				}
+				if c.orderOption.ExecInst != "" {
+					assert.Equal(t, c.orderOption.ClientOid, req.Params["exec_inst"])
+				}
+				// fully optional
+				if c.orderOption.ClientOid != "" {
+					assert.Equal(t, c.orderOption.ClientOid, req.Params["client_oid"])
+				}
+				if c.orderOption.TimeInForce != "" {
+					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["time_in_force"])
+				}
+			}
 		}
 	}
 }

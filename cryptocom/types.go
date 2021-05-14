@@ -121,10 +121,10 @@ type PublicTrade struct {
 	Timestamp  int64   `json:"t"`
 	TradeID    int     `json:"d"`
 }
-type DepositResponse struct {
-	Result DepositResult `json:"result"`
+type DepositAddressResponse struct {
+	Result DepositAddressResult `json:"result"`
 }
-type DepositResult struct {
+type DepositAddressResult struct {
 	DepositAddressList []DepositAddress `json:"deposit_address_list"`
 }
 type DepositAddress struct {
@@ -155,6 +155,13 @@ type ScopeResult struct {
 }
 type Scope struct {
 	Scope string `json:"scope"`
+}
+type OrderOption struct {
+	Notional     float64
+	ClientOid    string
+	TimeInForce  string
+	ExecInst     string
+	TriggerPrice float64
 }
 
 func generateNonce() int64 {
@@ -194,3 +201,4 @@ func (r *Request) Encode() ([]byte, error) {
 		"nonce":  r.Nonce,
 	})
 }
+

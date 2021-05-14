@@ -45,3 +45,6 @@ func mockPublicTrades(data ...PublicTrade) PublicTradeResult {
 func mockAccounts(data ...AccountSummary) AccountResult {
 	return AccountResult{Accounts: data}
 }
+func mockDepositAddress(data ...DepositAddress) DepositAddressResult {
+	return DepositAddressResult{DepositAddressList: data}
+}

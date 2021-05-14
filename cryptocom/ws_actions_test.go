@@ -29,7 +29,7 @@ func testSubscribe(t *testing.T, expected string, isPrivate bool, testFunc testi
 	var expectedResponse Request
 	err := json.Unmarshal([]byte(expected), &expectedResponse)
 	if err != nil {
-		t.Fatal("error on parse expected")
+		t.Fatal("error on parse expected", err)
 	}
 
 	// prepare mock
@@ -58,7 +58,6 @@ func testSubscribe(t *testing.T, expected string, isPrivate bool, testFunc testi
 	// assertion
 	assert.NotEqual(t, Request{}, writingMessage)
 	// doesn't assert on nonce
-	assert.Equal(t, expectedResponse.Id, writingMessage.Id)
 	assert.Equal(t, expectedResponse.Method, writingMessage.Method)
 	assert.Equal(t, expectedResponse.Params, writingMessage.Params)
 }
@@ -93,7 +92,7 @@ func testResponse(t *testing.T, expected string, isPrivate bool) {
 
 func TestPublicOrderBook(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["book.ETH_BTC.10"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["book.ETH_BTC.10"]}}`
 		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicOrderBook(10, "ETH_BTC") })
 	})
 
@@ -133,7 +132,7 @@ func TestPublicOrderBook(t *testing.T) {
 func TestPublicTrades(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["trade.ETH_BTC"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["trade.ETH_BTC"]}}`
 		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicTrades("ETH_BTC") })
 	})
 
@@ -163,7 +162,7 @@ func TestPublicTrades(t *testing.T) {
 func TestPublicTickers(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["ticker.ETH_BTC"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["ticker.ETH_BTC"]}}`
 		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicTickers("ETH_BTC") })
 	})
 
@@ -195,7 +194,7 @@ func TestPublicTickers(t *testing.T) {
 func TestSubscribePrivateOrders(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["user.order.ETH_BTC"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["user.order.ETH_BTC"]}}`
 		testSubscribe(t, expected, true, func(client *Client) { client.SubscribePrivateOrders("ETH_BTC") })
 	})
 
@@ -235,7 +234,7 @@ func TestSubscribePrivateOrders(t *testing.T) {
 func TestSubscribePrivateTrades(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["user.trade.ETH_BTC"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["user.trade.ETH_BTC"]}}`
 		testSubscribe(t, expected, true, func(client *Client) { client.SubscribePrivateTrades("ETH_BTC") })
 	})
 
@@ -271,7 +270,7 @@ func TestSubscribePrivateTrades(t *testing.T) {
 func TestSubscribePrivateBalanceUpdates(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":"","params":{"channels":["user.balance"]}}`
+		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["user.balance"]}}`
 		testSubscribe(t, expected, true, func(client *Client) { client.SubscribePrivateBalanceUpdates() })
 	})
 
@@ -305,7 +304,7 @@ func TestCreateLimitOrder(t *testing.T) {
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
-			`{"id":1,"method":"private/create-order","nonce":"","params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
+			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
 			uuid, price.String(), volume.String(), "BUY",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
@@ -328,7 +327,7 @@ func TestCreateLimitOrder(t *testing.T) {
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
-			`{"id":1,"method":"private/create-order","nonce":"","params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
+			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
 			uuid, price.String(), volume.String(), "SELL",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
@@ -364,7 +363,7 @@ func TestCreateMarketOrder(t *testing.T) {
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
-			`{"id":1,"method":"private/create-order","nonce":"","params":{"client_oid":"%s","instrument_name":"ETH_CRO","notional":"%s","side":"%s","type":"MARKET"}}`,
+			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","notional":"%s","side":"%s","type":"MARKET"}}`,
 			uuid, volume.String(), "BUY",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
@@ -385,7 +384,7 @@ func TestCreateMarketOrder(t *testing.T) {
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
-			`{"id":1,"method":"private/create-order","nonce":"","params":{"client_oid":"%s","instrument_name":"ETH_CRO","quantity":"%s","side":"%s","type":"MARKET"}}`,
+			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","quantity":"%s","side":"%s","type":"MARKET"}}`,
 			uuid, volume.String(), "SELL",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
@@ -419,7 +418,7 @@ func TestCancelOrder(t *testing.T) {
 
 		// prepare expected
 		expected := fmt.Sprintf(
-			`{"id":1,"method":"private/cancel-order","nonce":"","params":{"instrument_name":"ETH_CRO","order_id":"%s"}}`,
+			`{"id":1,"method":"private/cancel-order","nonce":0,"params":{"instrument_name":"ETH_CRO","order_id":"%s"}}`,
 			remoteID.String,
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
@@ -444,7 +443,7 @@ func TestCancelOrder(t *testing.T) {
 func TestCancelAllOrders(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
-		expected := `{"id":1,"method":"private/cancel-all-orders","nonce":"","params":{"instrument_name":"ETH_CRO"}}`
+		expected := `{"id":1,"method":"private/cancel-all-orders","nonce":0,"params":{"instrument_name":"ETH_CRO"}}`
 		testSubscribe(t, expected, true, func(client *Client) { client.CancelAllOrders(1, "ETH_CRO") })
 	})
 
@@ -462,7 +461,7 @@ func TestGetOrderDetails(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		// prepare expected
 		remoteID := "1138210129647637539"
-		expected := `{"id":1,"method":"private/get-order-detail","nonce":"","params":{"order_id":"1138210129647637539"}}`
+		expected := fmt.Sprintf(`{"id":1,"method":"private/get-order-detail","nonce":%d,"params":{"order_id":"1138210129647637539"}}`, generateNonce())
 		testSubscribe(t, expected, true, func(client *Client) { client.GetOrderDetails(1, remoteID) })
 	})
 

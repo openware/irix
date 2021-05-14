@@ -218,7 +218,14 @@ func (c *Client) generateSignature(r *Request) {
 	var parameters []string
 
 	for key, v := range r.Params {
-		parameters = append(parameters, key+v.(string))
+		var val string
+		switch v.(type) {
+		case float64, float32:
+			val = fmt.Sprintf("%.12f", v)
+		default:
+			val = v.(string)
+		}
+		parameters = append(parameters, key+val)
 	}
 
 	sort.Strings(parameters)

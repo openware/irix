@@ -1,5 +1,7 @@
 package cryptocom
 
+import "github.com/openware/pkg/order"
+
 // basic configuration
 const (
 	host = "api.crypto.com"
@@ -100,4 +102,9 @@ const (
 // rate limit
 const (
 
+)
+// extend order types
+const (
+	TakeProfitLimit order.Type = "TAKE_PROFIT_LIMIT"
+	StopLoss        order.Type = "STOP_LOSS"
 )
