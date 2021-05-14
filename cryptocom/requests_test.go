@@ -726,3 +726,78 @@ func TestClient_CreateWithdrawal(t *testing.T)  {
 		}
 	}
 }
+func TestClient_GetWithdrawalHistory(t *testing.T)  {
+	t.Parallel()
+	days7ago := timestampMs(time.Now().Add(time.Hour * 24 * -7))
+	now := timestampMs(time.Now())
+	testTable := []struct {
+		id int
+		arg *WithdrawHistoryParams
+		expectedParams KVParams
+		shouldError bool
+	}{
+		{0, &WithdrawHistoryParams{Currency: "-"}, nil,  true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", PageSize: 201}, nil,  true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", PageSize: -1}, nil,  true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", Page: -1}, nil, true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", Status: 14}, nil, true},
+		{0, &WithdrawHistoryParams{Currency: "BTC", Status: -2}, nil, true},
+		// valid cases
+		{
+			0,
+			&WithdrawHistoryParams{},
+			KVParams{},
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC"},
+			KVParams{"currency": "BTC"},
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago},
+			KVParams{"currency": "BTC", "start_ts": days7ago},
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now},
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), PageSize: 10},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 10},
+
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), Page: 1, PageSize: 20},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1},
+			false,
+		},
+		{
+			0,
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), Page: 1, PageSize: 20, Status: WithdrawCompleted},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1, "status": "5"},
+			false,
+		},
+	}
+	for _, c := range testTable {
+		req, err := cl.getWithdrawalHistory(c.id, c.arg)
+		if c.shouldError {
+			assert.Nil(t, req, c.arg)
+			assert.NotNil(t, err, c.arg)
+		} else {
+			assert.Nil(t, err, c.arg)
+			assert.NotNil(t, req, c.arg)
+			assert.Equal(t, privateGetWithdrawalHistory, req.Method)
+			assert.Equal(t, c.expectedParams, req.Params)
+		}
+	}
+}

@@ -381,10 +381,6 @@ func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error
 	return
 }
 func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
-	if currency == "" {
-		err = errors.New("invalid currency value")
-		return
-	}
 	if err = isValidCurrency(currency); err != nil {
 		return
 	}
@@ -445,7 +441,6 @@ func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
 }
 
 func (c *Client) createOrder(instrumentName string, side order.Side, orderType order.Type, price, quantity float64, orderOption *OrderOption) (req *Request, err error){
-
 	if err = tryOrError(func() error {
 		return validInstrument(instrumentName)
 	}, func() (err error) {
@@ -606,6 +601,22 @@ func (c *Client) createWithdrawal(reqID int, params WithdrawParams) (req *Reques
 	req = &Request{
 		Id: reqID,
 		Method: privateCreateWithdrawal,
+		Params: pr,
+	}
+	return
+}
+func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParams) (req *Request, err error) {
+	pr, err := params.Encode()
+	if err != nil {
+		return
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
+	req = &Request{
+		Id: reqID,
+		Method: privateGetWithdrawalHistory,
 		Params: pr,
 	}
 	return

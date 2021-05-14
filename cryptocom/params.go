@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -63,9 +64,9 @@ func (t *TradeParams) Encode() (KVParams, error) {
 }
 
 type WithdrawParams struct {
-	Amount float64
-	Address string
-	Currency string
+	Amount     float64
+	Address    string
+	Currency   string
 	WithdrawID string
 	AddressTag string
 }
@@ -92,8 +93,8 @@ func (w WithdrawParams) Encode() (KVParams, error) {
 	}
 	pr := KVParams{
 		"currency": w.Currency,
-		"amount": w.Amount,
-		"address": w.Address,
+		"amount":   w.Amount,
+		"address":  w.Address,
 	}
 	if w.WithdrawID != "" {
 		pr["client_wid"] = w.WithdrawID
@@ -101,5 +102,83 @@ func (w WithdrawParams) Encode() (KVParams, error) {
 	if w.AddressTag != "" {
 		pr["address_tag"] = w.AddressTag
 	}
+	return pr, nil
+}
+
+type WithdrawHistoryParams struct {
+	Currency string
+	StartTS  int64
+	EndTS    int64
+	PageSize int
+	Page     int
+	Status   WithdrawStatus
+}
+
+func (w *WithdrawHistoryParams) Validate() error {
+	return tryOrError(func() error {
+		if w.Currency == "" {
+			return nil
+		}
+		return isValidCurrency(w.Currency)
+	}, func() error {
+		return validPagination(w.PageSize, w.Page)
+	}, func() error {
+		if w.StartTS < 0 {
+			return errors.New("start timestamp should be positive number")
+		}
+		if w.EndTS < 0 {
+			return errors.New("end timestamp should be positive number")
+		}
+		if w.StartTS > 0 && w.EndTS > 0 && w.StartTS > w.EndTS {
+			return errors.New("start timestamp is ahead of end timestamp")
+		}
+		return nil
+	}, func() error {
+		if w.Status == 0 {
+			w.Status = WithdrawNone
+		}
+		switch w.Status {
+		case
+			WithdrawNone,
+			WithdrawPending,
+			WithdrawProcessing,
+			WithdrawRejected,
+			WithdrawPaymentInProgress,
+			WithdrawPaymentFailed,
+			WithdrawCompleted,
+			WithdrawCancelled:
+			return nil
+		default:
+			return errors.New("invalid status value")
+		}
+	})
+}
+func (w *WithdrawHistoryParams) Encode() (KVParams, error) {
+	pr := KVParams{}
+	if w == nil {
+		return pr, nil
+	}
+	if err := w.Validate(); err != nil {
+		return nil, err
+	}
+	if w.Currency != "" {
+		pr["currency"] = w.Currency
+	}
+	if w.StartTS > 0 {
+		pr["start_ts"] = w.StartTS
+	}
+	if w.EndTS > 0 {
+		pr["end_ts"] = w.EndTS
+	}
+	if w.PageSize > 0 {
+		pr["page_size"] = w.PageSize
+	}
+	if w.Page > 0 {
+		pr["page"] = w.Page
+	}
+	if w.Status != WithdrawNone {
+		pr["status"] = fmt.Sprintf("%d", w.Status)
+	}
+
 	return pr, nil
 }

@@ -110,3 +110,22 @@ const (
 	GoodTillCancel order.Type = "GOOD_TILL_CANCEL"
 	PostOnly order.Type = "POST_ONLY"
 )
+type WithdrawStatus int
+const (
+	WithdrawPending WithdrawStatus = iota
+	WithdrawProcessing
+	WithdrawRejected
+	WithdrawPaymentInProgress
+	WithdrawPaymentFailed
+	WithdrawCompleted
+	WithdrawCancelled
+	WithdrawNone WithdrawStatus = -1
+)
+type DepositStatus int
+
+const (
+	DepositNotArrived DepositStatus = iota
+	DepositArrived
+	DepositFailed
+	DepositPending
+)
