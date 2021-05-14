@@ -141,16 +141,33 @@ func (c *Client) createOrderMarketRequest(
 	}
 }
 
-func (c *Client) cancelOrderRequest(reqID int, remoteID, market string) *Request {
-	return &Request{
-		Id:     reqID,
+func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, err error) {
+	if err = tryOrError(func() error {
+		return validInstrument(market)
+	}, func() error {
+		if remoteID == "" {
+			return errors.New("order id required")
+		}
+		return nil
+	}); err != nil {
+		return
+	}
+
+	id := reqID
+	nonce := generateNonce()
+	if id == 0 {
+		id = int(nonce)
+	}
+	req = &Request{
+		Id:     id,
 		Method: privateCancelOrder,
 		Params: map[string]interface{}{
 			"instrument_name": market,
 			"order_id":        remoteID,
 		},
-		Nonce: generateNonce(),
+		Nonce: nonce,
 	}
+	return
 }
 
 // Market: "ETH_BTC"
@@ -510,8 +527,8 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 		if orderOption.ExecInst != "" && orderType == order.Limit {
 			params["exec_inst"] = orderOption.ExecInst
 		}
-		if orderOption.ClientOid != "" {
-			params["client_oid"] = orderOption.ClientOid
+		if orderOption.ClientOrderID != "" {
+			params["client_oid"] = orderOption.ClientOrderID
 		}
 	}
 	req = &Request{

@@ -157,11 +157,19 @@ type Scope struct {
 	Scope string `json:"scope"`
 }
 type OrderOption struct {
-	Notional     float64
-	ClientOid    string
-	TimeInForce  string
-	ExecInst     string
-	TriggerPrice float64
+	Notional      float64
+	ClientOrderID string
+	TimeInForce   string
+	ExecInst      string
+	TriggerPrice  float64
+}
+
+type OrderResult struct {
+	Result Order `json:"result"`
+}
+type Order struct {
+	OrderID       string `json:"order_id"`
+	ClientOrderID string `json:"client_oid"`
 }
 
 func generateNonce() int64 {
@@ -201,4 +209,3 @@ func (r *Request) Encode() ([]byte, error) {
 		"nonce":  r.Nonce,
 	})
 }
-

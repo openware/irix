@@ -114,7 +114,7 @@ func (c *Client) CreateMarketOrder(
 }
 
 func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
-	r := c.cancelOrderRequest(
+	r, _ := c.cancelOrder(
 		reqID,
 		remoteID,
 		market,

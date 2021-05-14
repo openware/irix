@@ -1,6 +1,7 @@
 package cryptocom
 
 import (
+	"fmt"
 	"github.com/openware/pkg/order"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -383,7 +384,7 @@ func TestUnsubscribeChannel(t *testing.T) {
 	}
 }
 
-func TestCreateOrder(t *testing.T)  {
+func TestClient_CreateOrder(t *testing.T)  {
 	testTable := []struct{
 		instrumentName string
 		side order.Side
@@ -447,16 +448,51 @@ func TestCreateOrder(t *testing.T)  {
 				if c.orderOption.TriggerPrice > 0 {
 					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["trigger_price"])
 				}
-				if c.orderOption.ExecInst != "" {
-					assert.Equal(t, c.orderOption.ClientOid, req.Params["exec_inst"])
-				}
 				// fully optional
-				if c.orderOption.ClientOid != "" {
-					assert.Equal(t, c.orderOption.ClientOid, req.Params["client_oid"])
+				if c.orderOption.ClientOrderID != "" {
+					assert.Equal(t, c.orderOption.ClientOrderID, req.Params["client_oid"])
 				}
 				if c.orderOption.TimeInForce != "" {
 					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["time_in_force"])
 				}
+				if c.orderOption.ExecInst != "" {
+					assert.Equal(t, c.orderOption.ClientOrderID, req.Params["exec_inst"])
+				}
+			}
+		}
+	}
+}
+func TestClient_CancelOrder(t *testing.T) {
+	testTable := []struct {
+		instrumentName string
+		orderId string
+		reqID int
+		shouldError bool
+	}{
+		{"random", "", 0, true},
+		{"-", "-", 0, true},
+		{"-", "-", 0, true},
+		{"BTC_USDT", "", 0, true},
+		// valid values
+		{"BTC_USDT", fmt.Sprintf("%d", time.Now().Unix()), 0, false},
+		{"BTC_USDT", fmt.Sprintf("%d", time.Now().Unix()), 1234, false},
+	}
+
+	for _, c := range testTable {
+		req, err := cl.cancelOrder(c.reqID, c.orderId, c.instrumentName)
+		if c.shouldError {
+			assert.NotNil(t, err, c)
+			assert.Nil(t, req, c)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, req, c)
+			assert.Equal(t, privateCancelOrder, req.Method)
+			assert.Equal(t, c.orderId, req.Params["order_id"])
+			assert.Equal(t, c.instrumentName, req.Params["instrument_name"])
+			if c.reqID > 0 {
+				assert.Equal(t, c.reqID, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
 			}
 		}
 	}
