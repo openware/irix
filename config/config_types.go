@@ -6,7 +6,7 @@ import (
 
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/database"
-	"github.com/openware/pkg/exchanges/protocol"
+	"github.com/openware/gocryptotrader/exchanges/protocol"
 	gctscript "github.com/openware/pkg/gctscript/vm"
 	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/portfolio"
