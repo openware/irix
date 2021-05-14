@@ -170,36 +170,6 @@ func TestGetTrades(t *testing.T)  {
 	}
 }
 
-func TestGetDepositAddress(t *testing.T)  {
-	testTable := []struct{
-		instrumentName string
-		shouldError bool
-	}{
-		{"_", true},
-		{"BTC_", true},
-		{"_USDT", true},
-		{"BTC_USDT", true},
-		{"", true},
-		// valid inputs
-		{"BTC", false},
-		{"USDT", false},
-	}
-	for _, arg := range testTable {
-		r, err := cl.getDepositAddress(arg.instrumentName)
-		if arg.shouldError {
-			assert.NotNil(t, err, arg)
-			assert.Nil(t, r, arg)
-		} else {
-			assert.Nil(t, err, arg)
-			assert.Equal(t, privateGetDepositAddress, r.Method, arg)
-			if arg.instrumentName != "" {
-				assert.Equal(t, arg.instrumentName, r.Params["currency"], arg)
-			} else {
-				assert.Nil(t, r.Params["currency"])
-			}
-		}
-	}
-}
 func TestGetAccountSummary(t *testing.T)  {
 	t.Parallel()
 	testTable := []struct{
@@ -231,7 +201,7 @@ func TestGetAccountSummary(t *testing.T)  {
 		}
 	}
 }
-func TestGetDepositHistory(t *testing.T)  {
+func TestGetDepositAddress(t *testing.T)  {
 	testTable := []struct{
 		instrumentName string
 		shouldError bool
@@ -770,20 +740,20 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), PageSize: 10},
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 10},
 
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), Page: 1, PageSize: 20},
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Hour * 24 * -7)), EndTS: timestampMs(time.Now()), Page: 1, PageSize: 20, Status: WithdrawCompleted},
+			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: WithdrawCompleted},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1, "status": "5"},
 			false,
 		},
@@ -798,6 +768,91 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 			assert.NotNil(t, req, c.arg)
 			assert.Equal(t, privateGetWithdrawalHistory, req.Method)
 			assert.Equal(t, c.expectedParams, req.Params)
+			if c.id > 0 {
+				assert.Equal(t, c.id, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
+			}
+		}
+	}
+}
+func TestClient_GetDepositHistory(t *testing.T)  {
+	t.Parallel()
+	days7ago := timestampMs(time.Now().Add(time.Hour * 24 * -7))
+	now := timestampMs(time.Now())
+	testTable := []struct {
+		id int
+		arg *DepositHistoryParams
+		expectedParams KVParams
+		shouldError bool
+	}{
+		{0, &DepositHistoryParams{Currency: "-"}, nil,  true},
+		{0, &DepositHistoryParams{Currency: "BTC", PageSize: 201}, nil,  true},
+		{0, &DepositHistoryParams{Currency: "BTC", PageSize: -1}, nil,  true},
+		{0, &DepositHistoryParams{Currency: "BTC", Page: -1}, nil, true},
+		{0, &DepositHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
+		{0, &DepositHistoryParams{Currency: "BTC", Status: 14}, nil, true},
+		{0, &DepositHistoryParams{Currency: "BTC", Status: -2}, nil, true},
+		// valid cases
+		{
+			0,
+			&DepositHistoryParams{},
+			KVParams{},
+			false,
+		},
+		{
+			0,
+			&DepositHistoryParams{Currency: "BTC"},
+			KVParams{"currency": "BTC"},
+			false,
+		},
+		{
+			0,
+			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago},
+			KVParams{"currency": "BTC", "start_ts": days7ago},
+			false,
+		},
+		{
+			0,
+			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now},
+			false,
+		},
+		{
+			0,
+			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 10},
+
+			false,
+		},
+		{
+			0,
+			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1},
+			false,
+		},
+		{
+			121212,
+			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: DepositFailed},
+			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1, "status": "2"},
+			false,
+		},
+	}
+	for _, c := range testTable {
+		req, err := cl.getDepositHistory(c.id, c.arg)
+		if c.shouldError {
+			assert.Nil(t, req, c.arg)
+			assert.NotNil(t, err, c.arg)
+		} else {
+			assert.Nil(t, err, c.arg)
+			assert.NotNil(t, req, c.arg)
+			assert.Equal(t, privateGetDepositHistory, req.Method)
+			assert.Equal(t, c.expectedParams, req.Params)
+			if c.id > 0 {
+				assert.Equal(t, c.id, req.Id)
+			} else {
+				assert.NotEmpty(t, req.Id)
+			}
 		}
 	}
 }

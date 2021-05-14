@@ -621,3 +621,19 @@ func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParams) 
 	}
 	return
 }
+func (c *Client) getDepositHistory(reqID int, params *DepositHistoryParams) (req *Request, err error) {
+	pr, err := params.Encode()
+	if err != nil {
+		return
+	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
+	req = &Request{
+		Id: reqID,
+		Method: privateGetDepositHistory,
+		Params: pr,
+	}
+	return
+}

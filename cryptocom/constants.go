@@ -100,7 +100,6 @@ const (
 )
 
 // rate limit
-const ()
 
 // extend order types
 const (
@@ -119,7 +118,7 @@ const (
 	WithdrawPaymentFailed
 	WithdrawCompleted
 	WithdrawCancelled
-	WithdrawNone WithdrawStatus = -1
+	WithdrawNone = -1
 )
 type DepositStatus int
 
@@ -128,4 +127,5 @@ const (
 	DepositArrived
 	DepositFailed
 	DepositPending
+	DepositNone = -1
 )

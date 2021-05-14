@@ -759,7 +759,7 @@ func TestClient_GetDepositAddress(t *testing.T)  {
 	}
 }
 
-func TestClient_GetDepositHistory(t *testing.T)  {
+func TestClient_getDepositHistory(t *testing.T)  {
 	method := privateGetDepositAddress
 
 	testCases := []struct {

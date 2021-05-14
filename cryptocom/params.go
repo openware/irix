@@ -182,3 +182,77 @@ func (w *WithdrawHistoryParams) Encode() (KVParams, error) {
 
 	return pr, nil
 }
+type DepositHistoryParams struct {
+	Currency string
+	StartTS  int64
+	EndTS    int64
+	PageSize int
+	Page     int
+	Status   DepositStatus
+}
+
+func (w *DepositHistoryParams) Validate() error {
+	return tryOrError(func() error {
+		if w.Currency == "" {
+			return nil
+		}
+		return isValidCurrency(w.Currency)
+	}, func() error {
+		return validPagination(w.PageSize, w.Page)
+	}, func() error {
+		if w.StartTS < 0 {
+			return errors.New("start timestamp should be positive number")
+		}
+		if w.EndTS < 0 {
+			return errors.New("end timestamp should be positive number")
+		}
+		if w.StartTS > 0 && w.EndTS > 0 && w.StartTS > w.EndTS {
+			return errors.New("start timestamp is ahead of end timestamp")
+		}
+		return nil
+	}, func() error {
+		if w.Status == 0 {
+			w.Status = WithdrawNone
+		}
+		switch w.Status {
+		case
+			DepositNone,
+			DepositArrived,
+			DepositPending,
+			DepositFailed,
+			DepositNotArrived:
+			return nil
+		default:
+			return errors.New("invalid status value")
+		}
+	})
+}
+func (w *DepositHistoryParams) Encode() (KVParams, error) {
+	pr := KVParams{}
+	if w == nil {
+		return pr, nil
+	}
+	if err := w.Validate(); err != nil {
+		return nil, err
+	}
+	if w.Currency != "" {
+		pr["currency"] = w.Currency
+	}
+	if w.StartTS > 0 {
+		pr["start_ts"] = w.StartTS
+	}
+	if w.EndTS > 0 {
+		pr["end_ts"] = w.EndTS
+	}
+	if w.PageSize > 0 {
+		pr["page_size"] = w.PageSize
+	}
+	if w.Page > 0 {
+		pr["page"] = w.Page
+	}
+	if w.Status != DepositNone {
+		pr["status"] = fmt.Sprintf("%d", w.Status)
+	}
+
+	return pr, nil
+}
