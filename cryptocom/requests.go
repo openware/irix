@@ -59,7 +59,7 @@ func (c *Client) subscribe(channels []string) (req *Request, err error) {
 	req = &Request{
 		Id:     int(nonce),
 		Method: subscribe,
-		Params: map[string]interface{}{"channels": channels},
+		Params: kvParams{"channels": channels},
 		Nonce:  nonce,
 	}
 	return
@@ -74,7 +74,7 @@ func (c *Client) unsubscribe(channels []string) (req *Request, err error) {
 	req = &Request{
 		Id:     int(nonce),
 		Method: unsubscribe,
-		Params: map[string]interface{}{"channels": channels},
+		Params: kvParams{"channels": channels},
 		Nonce:  nonce,
 	}
 	return
@@ -101,7 +101,7 @@ func (c *Client) createOrderLimitRequest(
 	return &Request{
 		Id:     reqID,
 		Method: privateCreateOrder,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
 			"type":            "LIMIT",
@@ -130,7 +130,7 @@ func (c *Client) createOrderMarketRequest(
 	return &Request{
 		Id:     reqID,
 		Method: privateCreateOrder,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
 			"side":            strings.ToUpper(orderSide),
 			"type":            "MARKET",
@@ -161,7 +161,7 @@ func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, 
 	req = &Request{
 		Id:     id,
 		Method: privateCancelOrder,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": market,
 			"order_id":        remoteID,
 		},
@@ -183,7 +183,7 @@ func (c *Client) cancelAllOrder(reqID int, market string) (req *Request, err err
 	req = &Request{
 		Id:     id,
 		Method: privateCancelAllOrders,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": market,
 		},
 		Nonce: generateNonce(),
@@ -204,7 +204,7 @@ func (c *Client) getOrderDetail(reqID int, remoteID string) (req *Request, err e
 	req = &Request{
 		Id:     reqID,
 		Method: privateGetOrderDetail,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"order_id": remoteID,
 		},
 		Nonce: nonce,
@@ -216,7 +216,7 @@ func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetOrderDetail,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"order_id": remoteID,
 		},
 		ApiKey: c.key,
@@ -231,7 +231,7 @@ func (c *Client) restGetBalanceRequest(reqID int) *Request {
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetAccountSummary,
-		Params: map[string]interface{}{},
+		Params: kvParams{},
 		ApiKey: c.key,
 		Nonce:  generateNonce(),
 	}
@@ -244,7 +244,7 @@ func (c *Client) restGetTradesRequest(reqID int, market string) *Request {
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetTrades,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": market,
 		},
 		ApiKey: c.key,
@@ -259,7 +259,7 @@ func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageS
 	r := &Request{
 		Id:     reqID,
 		Method: privateGetOpenOrders,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"instrument_name": market,
 			"page":            strconv.Itoa(page),
 			"page_size":       strconv.Itoa(pageSize),
@@ -289,7 +289,7 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 		err = errors.New("invalid depth value")
 		return
 	}
-	params := map[string]interface{}{
+	params := kvParams{
 		"instrument_name": instrument,
 	}
 	if depth == 0 {
@@ -319,7 +319,7 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 		err = errors.New("invalid interval")
 		return
 	}
-	params := map[string]interface{}{
+	params := kvParams{
 		"instrument_name": instrumentName,
 		"interval":        period.Encode(),
 	}
@@ -333,7 +333,7 @@ func (c *Client) getCandlestick(instrumentName string, period Interval, depth in
 	return
 }
 func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
-	params := map[string]interface{}{}
+	params := kvParams{}
 	if instrumentName != "" {
 		if err = validInstrument(instrumentName); err != nil {
 			return
@@ -347,7 +347,7 @@ func (c *Client) getTicker(instrumentName string) (req *Request, err error) {
 	return
 }
 func (c *Client) getPublicTrades(instrumentName string) (req *Request, err error) {
-	params := map[string]interface{}{}
+	params := kvParams{}
 	if instrumentName != "" {
 		if err = validInstrument(instrumentName); err != nil {
 			return
@@ -368,7 +368,7 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 	if err = isValidCurrency(currency); err != nil {
 		return
 	}
-	params := map[string]interface{}{
+	params := kvParams{
 		"currency": currency,
 	}
 	nonce := generateNonce()
@@ -376,16 +376,14 @@ func (c *Client) getDepositAddress(currency string) (req *Request, err error) {
 		Id:     int(nonce),
 		Method: privateGetDepositAddress,
 		Params: params,
-		ApiKey: c.key,
 		Nonce:  nonce,
 	}
-	c.generateSignature(req)
 	return
 }
 
 
 func (c *Client) getAccountSummary(instrumentName string) (req *Request, err error) {
-	params := map[string]interface{}{}
+	params := kvParams{}
 	if instrumentName != "" {
 		// TODO: do small validation. ask the team how the validation done in the backend
 		code := currency.NewCode(instrumentName).String()
@@ -398,7 +396,6 @@ func (c *Client) getAccountSummary(instrumentName string) (req *Request, err err
 		Method: privateGetAccountSummary,
 		Params: params,
 	}
-	c.generateSignature(req)
 	return
 }
 func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
@@ -410,11 +407,10 @@ func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
 		Id: int(nonce),
 		Method: privateSetCancelOnDisconnect,
 		Nonce: nonce,
-		Params: map[string]interface{}{
+		Params: kvParams{
 			"scope": scope,
 		},
 	}
-	c.generateSignature(req)
 	return
 }
 
@@ -425,7 +421,6 @@ func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
 		Method: privateGetCancelOnDisconnect,
 		Nonce: nonce,
 	}
-	c.generateSignature(req)
 	return
 }
 
@@ -525,7 +520,7 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 	// validate cases based on the requirements
 
 	nonce := generateNonce()
-	params := map[string]interface{}{
+	params := kvParams{
 		"instrument_name": instrumentName,
 		"side": side.String(),
 		"type": strings.ReplaceAll(orderType.String(), " ", "-"),

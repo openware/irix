@@ -223,8 +223,6 @@ func TestGetAccountSummary(t *testing.T)  {
 		} else {
 			assert.Nil(t, err, arg)
 			assert.Equal(t, privateGetAccountSummary, r.Method, arg)
-			assert.NotEmpty(t, r.ApiKey)
-			assert.NotEmpty(t, r.Signature)
 			if arg.instrumentName != "" {
 				assert.Equal(t, arg.instrumentName, r.Params["currency"], arg)
 			} else {
@@ -309,8 +307,6 @@ func TestSetCancelOnDisconnect(t *testing.T) {
 		} else {
 			assert.Nil(t, err, arg)
 			assert.Equal(t, privateSetCancelOnDisconnect, r.Method, arg)
-			assert.NotEmpty(t, r.ApiKey)
-			assert.NotEmpty(t, r.Signature)
 			assert.Equal(t, arg.scope, r.Params["scope"])
 		}
 	}
@@ -320,7 +316,6 @@ func TestGetCancelOnDisconnect(t *testing.T) {
 	t.Parallel()
 	req, _ := cl.getCancelOnDisconnect()
 	assert.Equal(t, privateGetCancelOnDisconnect, req.Method)
-	assert.NotEmpty(t, req.Signature)
 	assert.NotEmpty(t, req.Nonce)
 }
 func TestSubscribeChannel(t *testing.T) {

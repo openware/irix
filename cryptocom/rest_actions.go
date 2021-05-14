@@ -89,6 +89,7 @@ func (c *Client) RestGetDepositAddress(currency string) (res DepositAddressResul
 	if err != nil {
 		return
 	}
+	c.generateSignature(req)
 	var result DepositAddressResponse
 	_, err = c.rest.Send("POST", req, &result)
 	if err == nil {
@@ -101,6 +102,7 @@ func (c *Client) RestGetAccountSummary(currency string) (res AccountResult, err 
 	if err != nil {
 		return
 	}
+	c.generateSignature(req)
 	var result AccountResponse
 	_, err = c.rest.Send("POST", req, &result)
 	if err == nil {
