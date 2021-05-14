@@ -218,6 +218,15 @@ type TradeResponse struct {
 type TradeResult struct {
 	TradeList []Trade `json:"trade_list"`
 }
+type WithdrawResult struct {
+	ID         int     `json:"id"`
+	Amount     float64 `json:"amount"`
+	Fee        float64 `json:"fee"`
+	Symbol     string  `json:"symbol"`
+	Address    string  `json:"address"`
+	WithdrawID string  `json:"client_wid"`
+	CreateTime int64   `json:"create_time"`
+}
 
 func generateNonce() int64 {
 	return timestampMs(time.Now())
