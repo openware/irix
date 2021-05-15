@@ -1,6 +1,13 @@
 package cryptocom
 
-import "encoding/json"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/stretchr/testify/mock"
+	"io/ioutil"
+	"net/http"
+)
 
 func mockResponseBody(id int, method string, code int, result interface{}) []byte {
 	b, _ := json.Marshal(map[string]interface {
@@ -61,7 +68,25 @@ func mockTrades(tradeList ...Trade) TradeResult {
 }
 func mockOpenOrders(count int, orders ...OrderInfo) OpenOrdersResult {
 	return OpenOrdersResult{
-		Count: count,
+		Count:     count,
 		OrderList: orders,
 	}
+}
+
+func setupHttpMock(body *mockBody) (cli *Client, mockClient *httpClientMock) {
+	mockClient = &httpClientMock{}
+	if body != nil {
+		mockResponse := &http.Response{
+			StatusCode: body.code,
+			Body:       ioutil.NopCloser(bytes.NewReader(body.body)),
+		}
+		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+	}
+	cli = &Client{
+		key: "something",
+		secret: "something",
+		rest: newHttpClient(mockClient,
+			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+		)}
+	return
 }

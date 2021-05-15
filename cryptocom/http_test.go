@@ -10,14 +10,6 @@ import (
 	"testing"
 )
 
-type httpClientMock struct {
-	mock.Mock
-}
-
-func (h *httpClientMock) Do(req *http.Request) (*http.Response, error) {
-	args := h.Called(req)
-	return args.Get(0).(*http.Response), args.Error(1)
-}
 
 func TestHttpClient_SendGet(t *testing.T) {
 	testCases := []struct {

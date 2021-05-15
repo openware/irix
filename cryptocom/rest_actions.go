@@ -140,3 +140,22 @@ func (c *Client) RestGetAccountSummary(currency string) (res AccountResult, err 
 	return
 }
 
+func (c *Client) RestCreateWithdrawal(reqID int, in WithdrawParams) (res *WithdrawResult, err error) {
+	var (
+		req *Request
+		result WithdrawResponse
+	)
+	if err = tryOrError(func() (err error) {
+		req, err = c.createWithdrawal(reqID, in)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		_, err = c.rest.Send("POST", req, &result)
+		return
+	}); err != nil {
+		return
+	}
+	res = &result.Result
+	return
+}
+

@@ -219,6 +219,9 @@ type TradeResponse struct {
 type TradeResult struct {
 	TradeList []Trade `json:"trade_list"`
 }
+type WithdrawResponse struct {
+	Result WithdrawResult `json:"result"`
+}
 type WithdrawResult struct {
 	ID         int     `json:"id"`
 	Amount     float64 `json:"amount"`

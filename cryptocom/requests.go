@@ -554,6 +554,7 @@ func (c *Client) createWithdrawal(reqID int, params WithdrawParams) (req *Reques
 		Id: reqID,
 		Method: privateCreateWithdrawal,
 		Params: pr,
+		Nonce: nonce,
 	}
 	return
 }
