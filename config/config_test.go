@@ -13,7 +13,7 @@ import (
 	"github.com/openware/pkg/common/file"
 	"github.com/openware/pkg/connchecker"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/database"
+	"github.com/openware/gocryptotrader/database"
 	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/ntpclient"

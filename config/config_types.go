@@ -9,7 +9,7 @@ import (
 	"github.com/openware/irix/portfolio"
 	"github.com/openware/irix/portfolio/banking"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/database"
+	"github.com/openware/gocryptotrader/database"
 	"github.com/openware/pkg/log"
 )
 
