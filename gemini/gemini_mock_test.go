@@ -18,6 +18,7 @@ import (
 const mockFile = "./gemini.mock.json"
 
 var mockTests = true
+
 func configTest() (*config.ExchangeConfig, error) {
 	wd, _ := os.Getwd()
 	return config.FromFile(filepath.Join(wd, "gemini.conf.json"))

@@ -24,7 +24,6 @@ func configTest() (*config.ExchangeConfig, error) {
 	return config.FromFile(filepath.Join(wd, "localbitcoins.conf.json"))
 }
 
-
 func TestMain(m *testing.M) {
 	localbitcoinsConfig, err := configTest()
 	if err != nil {
