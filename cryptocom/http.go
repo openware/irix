@@ -31,6 +31,7 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 	switch verb {
 	case "GET":
 		req, _ = http.NewRequest(verb, fmt.Sprintf("%s/%s", h.root, request.Method), nil)
+		req.Header.Add("Content-Type", "application/json")
 		q := req.URL.Query()
 		if request.Id > 0 {
 			q.Add("id", fmt.Sprint(request.Id))

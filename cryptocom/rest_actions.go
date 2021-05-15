@@ -1,30 +1,59 @@
 package cryptocom
 
-import (
-	"bytes"
-	"encoding/json"
-)
-
-const apiVersionSuffix = "/v2/"
-
-func (c *Client) RestGetOrderDetails(reqID int, remoteID string) (Response, error) {
-	r := c.restGetOrderDetailsRequest(reqID, remoteID)
-	return c.send(r)
+func (c *Client) RestGetOrderDetails(reqID int, remoteID string) (res *OrderDetail, err error) {
+	var (
+		req *Request
+		response OrderDetailResponse
+	)
+	if err = tryOrError(func() error {
+		req, err = c.getOrderDetail(reqID, remoteID)
+		return err
+	}, func() error {
+		c.generateSignature(req)
+		_, err := c.rest.Send("POST", req, &response)
+		return err
+	}); err != nil {
+		return
+	}
+	res = &response.Result
+	return
 }
 
-func (c *Client) RestGetBalance(reqID int) (Response, error) {
-	r := c.restGetBalanceRequest(reqID)
-	return c.send(r)
+func (c *Client) RestGetTrades(reqID int, param *TradeParams) (res *TradeResult, err error) {
+	var (
+		req *Request
+		response TradeResponse
+	)
+	if err = tryOrError(func() error {
+		req, err = c.privateGetTrades(reqID, param)
+		return err
+	}, func() error {
+		c.generateSignature(req)
+		_, err := c.rest.Send("POST", req, &response)
+		return err
+	}); err != nil {
+		return
+	}
+	res = &response.Result
+	return
 }
-
-func (c *Client) RestGetTrades(reqID int, market string) (Response, error) {
-	r, _ := c.privateGetTrades(reqID, &TradeParams{Market: market})
-	return c.send(r)
-}
-
-func (c *Client) RestOpenOrders(reqID int, market string, pageNumber int, pageSize int) (Response, error) {
-	r := c.restOpenOrdersRequest(reqID, market, pageNumber, pageSize)
-	return c.send(r)
+func (c *Client) RestOpenOrders(reqID int, param *OpenOrderParam) (res *OpenOrdersResult, err error) {
+	var (
+		req *Request
+		response OpenOrdersResponse
+	)
+	if err = tryOrError(func() (err error) {
+		req, err = c.getOpenOrders(reqID, param)
+		return
+	}, func() error {
+		c.generateSignature(req)
+		_, err := c.rest.Send("POST", req, &response)
+		return err
+	}); err != nil {
+		return
+	}
+	res = &response.Result
+	return
 }
 
 func (c *Client) RestGetInstruments() (res []Instruments, err error) {
@@ -111,20 +140,3 @@ func (c *Client) RestGetAccountSummary(currency string) (res AccountResult, err 
 	return
 }
 
-func (c *Client) send(r *Request) (Response, error) {
-	body, err := r.Encode()
-	if err != nil {
-		return Response{}, err
-	}
-
-	resp, err := c.httpClient.Post(c.restRootURL+apiVersionSuffix+r.Method, "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return Response{}, err
-	}
-	defer resp.Body.Close()
-
-	var parsed Response
-	err = json.NewDecoder(resp.Body).Decode(&parsed)
-
-	return parsed, err
-}

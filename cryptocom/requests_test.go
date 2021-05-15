@@ -85,6 +85,8 @@ func TestRequest_GetCandlestick(t *testing.T)  {
 		{"_USDT", Minute1, 1, true},
 		{"BTC_USDT", -10, 1, true},
 		{"BTC_USDT", 100, 1, true},
+		{"BTC_USDT", 100, -1, true},
+		{"BTC_USDT", Minute1, 1001, true},
 		// valid inputs
 		{"BTC_USDT", Minute5, 10, false},
 		{"BTC_USDT", Hour1, 100, false},
@@ -375,12 +377,10 @@ func TestClient_CreateOrder(t *testing.T)  {
 		{"BTC_USDT", order.Sell, order.StopLimit, 0.1, 0, nil, true},
 		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, nil, true},
 		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, &OrderOption{}, true},
-		// TODO: switch to constant when the PR is merged
 		{"BTC_USDT", order.Sell, TakeProfitLimit, 0, 0, nil, true},
 		{"BTC_USDT", order.Sell, TakeProfitLimit, 0.1, 0, nil, true},
 		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, nil, true},
 		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, &OrderOption{}, true},
-		// TODO: make PR to pkg
 		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, nil, true},
 		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
 		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
@@ -389,9 +389,15 @@ func TestClient_CreateOrder(t *testing.T)  {
 		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
 		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
 		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0.1, TriggerPrice: 0}, true},
+		{"BTC_USDT", order.Sell, order.Limit, 0.1, 0.1, &OrderOption{ExecInst: GoodTillCancel}, true},
+		{"BTC_USDT", order.Sell, order.Limit, 0.1, 0.1, &OrderOption{TimeInForce: PostOnly}, true},
 		// valid cases
 		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, nil, false},
 		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001}, false},
+		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TimeInForce: GoodTillCancel}, false},
+		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TimeInForce: GoodTillCancel, ExecInst: PostOnly}, false},
+		{"BTC_USDT", order.Buy, StopLoss, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TriggerPrice: 0.001}, false},
+		{"BTC_USDT", order.Buy, StopLoss, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, false},
 	}
 	for _, c := range testTable {
 		req, err := cl.createOrder(c.instrumentName, c.side, c.orderType, c.price, c.quantity, c.orderOption)
@@ -419,10 +425,10 @@ func TestClient_CreateOrder(t *testing.T)  {
 					assert.Equal(t, c.orderOption.ClientOrderID, req.Params["client_oid"])
 				}
 				if c.orderOption.TimeInForce != "" {
-					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["time_in_force"])
+					assert.Equal(t, c.orderOption.TimeInForce, req.Params["time_in_force"])
 				}
 				if c.orderOption.ExecInst != "" {
-					assert.Equal(t, c.orderOption.ClientOrderID, req.Params["exec_inst"])
+					assert.Equal(t, c.orderOption.ExecInst, req.Params["exec_inst"])
 				}
 			}
 		}
@@ -532,30 +538,30 @@ func TestClient_GetOrderDetail(t *testing.T) {
 func TestClient_GetOpenOrders(t *testing.T) {
 	t.Parallel()
 	testTable := []struct{
-		instrumentName string
-		pageSize       int
-		page           int
+		reqID int
+		param *OpenOrderParam
 		expectedParams KVParams
 		shouldError    bool
 	}{
-		{"-", 0, 0, nil, true},
-		{"BTC", 0, 0, nil, true},
-		{"BTC_USDT", -1, 0, nil, true},
-		{"BTC_USDT", 0, -1, nil, true},
+		{0, &OpenOrderParam{"-", 0, 0}, nil, true},
+		{0, &OpenOrderParam{"BTC", 0, 0}, nil, true},
+		{0, &OpenOrderParam{"BTC_USDT", -1, 0}, nil, true},
+		{0, &OpenOrderParam{"BTC_USDT", 0, -1}, nil, true},
 		// valid values
-		{"", 0, 0, KVParams{"page_size": 20, "page": 0}, false},
-		{"BTC_USDT", 0, 0, KVParams{"instrument_name": "BTC_USDT", "page_size": 20, "page": 0}, false},
-		{"BTC_USDT", 10, 0, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 0}, false},
-		{"BTC_USDT", 10, 1, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
+		{0, nil, KVParams{}, false},
+		{0, &OpenOrderParam{}, KVParams{}, false},
+		{0, &OpenOrderParam{"BTC_USDT", 0, 0}, KVParams{"instrument_name": "BTC_USDT"}, false},
+		{0, &OpenOrderParam{"BTC_USDT", 10, 0}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10}, false},
+		{0, &OpenOrderParam{"BTC_USDT", 10, 1}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
 	}
 	for _, c := range testTable {
-		req, err := cl.getOpenOrders(c.instrumentName, c.pageSize, c.page)
+		req, err := cl.getOpenOrders(c.reqID, c.param)
 		if c.shouldError {
 			assert.Nil(t, req, c)
 			assert.NotNil(t, err, c)
 		} else {
-			assert.Nil(t, err, c)
-			assert.NotNil(t, req, c)
+			assert.Nil(t, err, c.param)
+			assert.NotNil(t, req, c.param)
 			assert.Equal(t, privateGetOpenOrders, req.Method)
 			assert.Equal(t, c.expectedParams, req.Params)
 		}
@@ -702,58 +708,58 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 	now := timestampMs(time.Now())
 	testTable := []struct {
 		id int
-		arg *WithdrawHistoryParams
+		arg *WithdrawHistoryParam
 		expectedParams KVParams
 		shouldError bool
 	}{
-		{0, &WithdrawHistoryParams{Currency: "-"}, nil,  true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", PageSize: 201}, nil,  true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", PageSize: -1}, nil,  true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", Page: -1}, nil, true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", Status: 14}, nil, true},
-		{0, &WithdrawHistoryParams{Currency: "BTC", Status: -2}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "-"}, nil,  true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", PageSize: 201}, nil,  true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", PageSize: -1}, nil,  true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", Page: -1}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", Status: 14}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", Status: -2}, nil, true},
 		// valid cases
 		{
 			0,
-			&WithdrawHistoryParams{},
+			&WithdrawHistoryParam{},
 			KVParams{},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC"},
+			&WithdrawHistoryParam{Currency: "BTC"},
 			KVParams{"currency": "BTC"},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago},
+			&WithdrawHistoryParam{Currency: "BTC", StartTS: days7ago},
 			KVParams{"currency": "BTC", "start_ts": days7ago},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now},
+			&WithdrawHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
+			&WithdrawHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 10},
 
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
+			&WithdrawHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1},
 			false,
 		},
 		{
 			0,
-			&WithdrawHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: WithdrawCompleted},
+			&WithdrawHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: WithdrawCompleted},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1, "status": "5"},
 			false,
 		},
@@ -776,64 +782,64 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 		}
 	}
 }
-func TestClient_GetDepositHistory(t *testing.T)  {
+func TestClient_getDepositHistory(t *testing.T)  {
 	t.Parallel()
 	days7ago := timestampMs(time.Now().Add(time.Hour * 24 * -7))
 	now := timestampMs(time.Now())
 	testTable := []struct {
 		id int
-		arg *DepositHistoryParams
+		arg *DepositHistoryParam
 		expectedParams KVParams
 		shouldError bool
 	}{
-		{0, &DepositHistoryParams{Currency: "-"}, nil,  true},
-		{0, &DepositHistoryParams{Currency: "BTC", PageSize: 201}, nil,  true},
-		{0, &DepositHistoryParams{Currency: "BTC", PageSize: -1}, nil,  true},
-		{0, &DepositHistoryParams{Currency: "BTC", Page: -1}, nil, true},
-		{0, &DepositHistoryParams{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
-		{0, &DepositHistoryParams{Currency: "BTC", Status: 14}, nil, true},
-		{0, &DepositHistoryParams{Currency: "BTC", Status: -2}, nil, true},
+		{0, &DepositHistoryParam{Currency: "-"}, nil,  true},
+		{0, &DepositHistoryParam{Currency: "BTC", PageSize: 201}, nil,  true},
+		{0, &DepositHistoryParam{Currency: "BTC", PageSize: -1}, nil,  true},
+		{0, &DepositHistoryParam{Currency: "BTC", Page: -1}, nil, true},
+		{0, &DepositHistoryParam{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
+		{0, &DepositHistoryParam{Currency: "BTC", Status: 14}, nil, true},
+		{0, &DepositHistoryParam{Currency: "BTC", Status: -2}, nil, true},
 		// valid cases
 		{
 			0,
-			&DepositHistoryParams{},
+			&DepositHistoryParam{},
 			KVParams{},
 			false,
 		},
 		{
 			0,
-			&DepositHistoryParams{Currency: "BTC"},
+			&DepositHistoryParam{Currency: "BTC"},
 			KVParams{"currency": "BTC"},
 			false,
 		},
 		{
 			0,
-			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago},
+			&DepositHistoryParam{Currency: "BTC", StartTS: days7ago},
 			KVParams{"currency": "BTC", "start_ts": days7ago},
 			false,
 		},
 		{
 			0,
-			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now},
+			&DepositHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now},
 			false,
 		},
 		{
 			0,
-			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
+			&DepositHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, PageSize: 10},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 10},
 
 			false,
 		},
 		{
 			0,
-			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
+			&DepositHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1},
 			false,
 		},
 		{
 			121212,
-			&DepositHistoryParams{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: DepositFailed},
+			&DepositHistoryParam{Currency: "BTC", StartTS: days7ago, EndTS: now, Page: 1, PageSize: 20, Status: DepositFailed},
 			KVParams{"currency": "BTC", "start_ts": days7ago, "end_ts": now, "page_size": 20, "page": 1, "status": "2"},
 			false,
 		},

@@ -3,13 +3,10 @@ package cryptocom
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/stretchr/testify/mock"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
@@ -17,250 +14,216 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mockHTTPClientError struct {
-	response *http.Response
-	endpoint string
-}
-
-func (m *mockHTTPClientError) Post(endpoint, contentType string, body io.Reader) (resp *http.Response, err error) {
-	return nil, errors.New("")
-}
-
-func (m *mockHTTPClientError) Get(endpoint string) (resp *http.Response, err error) {
-	return nil, errors.New("")
-}
-
-type testRestFunc func(client *Client) (Response, error)
-
-func testRest(t *testing.T, expectEndPoint string, jsonExpected string, fn testRestFunc) {
-	// prepare mock
-	var endpoint string
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(jsonExpected))
-		endpoint = r.URL.String()
-	}))
-
-	defer ts.Close()
-
-	client := New(ts.URL, ts.URL, "test", "test")
-
-	privateResponse := make(chan *bytes.Buffer)
-	publicResponse := make(chan *bytes.Buffer)
-	client.connectMock(privateResponse, publicResponse, bytes.NewBuffer(nil), bytes.NewBuffer(nil))
-
-	// test function
-	resp, _ := fn(client)
-
-	// prepare expect
-	var expectedResponse Response
-	_ = json.NewDecoder(bytes.NewBufferString(jsonExpected)).Decode(&expectedResponse)
-
-	// assert response
-	assert.NotEqual(t, Response{}, resp)
-	assert.Equal(t, expectedResponse.Method, resp.Method)
-	assert.Equal(t, expectedResponse.Result, resp.Result)
-	assert.Equal(t, expectedResponse.Code, resp.Code)
-	assert.Equal(t, expectedResponse.Message, resp.Message)
-
-	// assert endpoint
-	assert.Equal(t, expectEndPoint, endpoint)
+type mockBody struct {
+	code int
+	body []byte
 }
 
 func TestRestGetOrderDetails(t *testing.T) {
-	remoteID := "1138210129647637539"
-
-	t.Run("Success", func(t *testing.T) {
-		// mock response
-		jsonStr := `{"id": 1,
-      "method": "private/get-order-detail",
-      "code": 0,
-      "result": { 
-        "trade_list": [],
-        "order_info": {
-          "avg_price": 0.01,
-          "client_oid": "2238094a-ec65-4ba6-8c9f-49597723c7fe",
-          "create_time": 1611750064904,
-          "cumulative_quantity": 0.0001,
-          "cumulative_value": 0.000001,
-          "exec_inst": "",
-          "fee_currency": "ETH",
-          "instrument_name": "ETH_CRO",
-          "order_id": "1137940341134421889",
-          "price": 0.01,
-          "quantity": 0.0001,
-          "side": "sel",
-          "status": "FILLED",
-          "time_in_force": "GOOD_TILL_CANCEL",
-          "type": "LIMIT",
-          "update_time": 1611750065006
-        }
-      }}`
-		expectedEndpoint := `/v2/private/get-order-detail`
-		testRest(t,
-			expectedEndpoint,
-			jsonStr,
-			func(client *Client) (Response, error) {
-				return client.RestGetOrderDetails(1, remoteID)
-			},
-		)
-	})
-
-	t.Run("HTTP client error", func(t *testing.T) {
-		client := &Client{}
-		client.httpClient = &mockHTTPClientError{}
-		response, err := client.RestGetOrderDetails(1, remoteID)
-		assert.Equal(t, Response{}, response)
-		assert.Equal(t, errors.New(""), err)
-	})
-}
-
-func TestRestGetBalance(t *testing.T) {
-	reqID := 1
-
-	t.Run("Success", func(t *testing.T) {
-		// mock response
-		jsonStr := fmt.Sprintf(`{"id": %d,
-      "method": "private/get-account-summary",
-      "code": 0,
-      "result": {
-        "accounts": [
-          {
-            "balance": 99999999.905000000000000000,
-            "available": 99999996.905000000000000000,
-            "order": 3.000000000000000000,
-            "stake": 0,
-            "currency": "CRO"
-          },
-          {
-            "available": 1000000000,
-            "balance": 1000000000,
-            "currency": "BTC",
-            "order": 0,
-            "stake": 0
-          }
-        ]
-      }}`,
-			reqID,
-		)
-		expectedEndpoint := `/v2/private/get-account-summary`
-		testRest(t,
-			expectedEndpoint,
-			jsonStr,
-			func(client *Client) (Response, error) { return client.RestGetBalance(reqID) },
-		)
-	})
-
-	t.Run("HTTP client error", func(t *testing.T) {
-		client := &Client{}
-		client.httpClient = &mockHTTPClientError{}
-		response, err := client.RestGetBalance(reqID)
-		assert.Equal(t, Response{}, response)
-		assert.Equal(t, errors.New(""), err)
-	})
+	t.Parallel()
+	method := privateGetOrderDetail
+	type input struct {
+		reqID    int
+		remoteID string
+	}
+	testTable := []struct {
+		in                    input
+		body                  *mockBody
+		expectedBody          KVParams
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{input{0, "0"}, nil, nil, true, false},
+		{input{0, "1212121212"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, KVParams{"order_id": "1212121212"}, false, true},
+		{input{1213, "1212121212"}, &mockBody{200, mockResponseBody(1213, method, 0, mockOrderDetail(OrderInfo{}, Trade{}))}, KVParams{"order_id": "1212121212"}, false, false},
+	}
+	for _, c := range testTable {
+		mockClient := &httpClientMock{}
+		if c.body != nil {
+			mockResponse := &http.Response{
+				StatusCode: c.body.code,
+				Body:       ioutil.NopCloser(bytes.NewReader(c.body.body)),
+			}
+			mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		}
+		cli := &Client{
+			key:    "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestGetOrderDetails(c.in.reqID, c.in.remoteID)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.in.reqID > 0 {
+			assert.Equal(t, c.in.reqID, rq.Id)
+		}
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, c.expectedBody, rq.Params)
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), privateGetOrderDetail)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
 
 func TestRestGetTrades(t *testing.T) {
-	// mock response
-	reqID := 1
-	market := "ETH_CRO"
-
-	t.Run("Success", func(t *testing.T) {
-		jsonStr := fmt.Sprintf(`
-      {
-        "id": %d,
-        "method": "private/get-trades",
-        "code": 0,
-        "result": {
-          "trade_list": [
-            {
-              "side": "SELL",
-              "instrument_name": "%s",
-              "fee": 0.014,
-              "trade_id": "367107655537806900",
-              "create_time": 1588777459755,
-              "traded_price": 7,
-              "traded_quantity": 1,
-              "fee_currency": "CRO",
-              "order_id": "367107623521528450"
-            }
-          ]
-        }
-      }`,
-			reqID,
-			market,
-		)
-		expectedEndpoint := `/v2/private/get-trades`
-		testRest(t,
-			expectedEndpoint,
-			jsonStr,
-			func(client *Client) (Response, error) { return client.RestGetTrades(reqID, market) },
-		)
-	})
-
-	t.Run("HTTP client error", func(t *testing.T) {
-		client := &Client{}
-		client.httpClient = &mockHTTPClientError{}
-		response, err := client.RestGetTrades(reqID, market)
-		assert.Equal(t, Response{}, response)
-		assert.Equal(t, errors.New(""), err)
-	})
+	t.Parallel()
+	method := privateGetTrades
+	type input struct {
+		reqID int
+		body  *TradeParams
+	}
+	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
+	testTable := []struct {
+		in                    input
+		body                  *mockBody
+		expectedParams        KVParams
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{input{0, &TradeParams{Market: "BTC"}}, nil, nil, true, false},
+		{input{0, nil}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{}, false, true},
+		{input{0, &TradeParams{}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", StartTS: timeAgo[0]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "start_ts": timeAgo[0]}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", StartTS: timeAgo[1]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "start_ts": timeAgo[1]}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", EndTS: timeAgo[2]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "end_ts": timeAgo[2]}, false, true},
+		{input{1212, &TradeParams{Page: 20}}, &mockBody{200, mockResponseBody(1212, method, 0, mockTrades())}, KVParams{"page": 20}, false, false},
+		{input{121212, &TradeParams{PageSize: 1}}, &mockBody{200, mockResponseBody(1212, method, 0, mockTrades())}, KVParams{"page_size": 1}, false, false},
+	}
+	for _, c := range testTable {
+		mockClient := &httpClientMock{}
+		if c.body != nil {
+			mockResponse := &http.Response{
+				StatusCode: c.body.code,
+				Body:       ioutil.NopCloser(bytes.NewReader(c.body.body)),
+			}
+			mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		}
+		cli := &Client{
+			key:    "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestGetTrades(c.in.reqID, c.in.body)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.in.reqID > 0 {
+			assert.Equal(t, c.in.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
 
-func TestRestOpenOrders(t *testing.T) {
-	// mock response
-	reqID := 1
-	market := "ETH_CRO"
-	pageNumber := 1
-	pageSize := 200
-
-	t.Run("Success", func(t *testing.T) {
-		jsonStr := fmt.Sprintf(`
-    {
-      "id": %d,
-      "method": "private/get-open-orders",
-      "code": 0,
-      "result": {
-        "count": 28,
-        "order_list": [
-          {
-            "avg_price": 0,
-            "client_oid": "8146de38-4514-414c-9f41-db2f339f7202",
-            "create_time": 1611880079268,
-            "cumulative_quantity": 0,
-            "cumulative_value": 0,
-            "exec_inst": "",
-            "fee_currency": "ETH",
-            "instrument_name": "ETH_CRO",
-            "order_id": "1142302899251991010",
-            "price": 0.4,
-            "quantity": 0.3,
-            "side": "BUY",
-            "status": "ACTIVE",
-            "time_in_force": "GOOD_TILL_CANCEL",
-            "type": "LIMIT",
-            "update_time": 1611880079298
-          }
-        ]
-      }
-    }`, reqID)
-		expectedEndpoint := `/v2/private/get-open-orders`
-		testRest(t,
-			expectedEndpoint,
-			jsonStr,
-			func(client *Client) (Response, error) {
-				return client.RestOpenOrders(reqID, market, pageNumber, pageSize)
-			},
-		)
-	})
-
-	t.Run("HTTP client error", func(t *testing.T) {
-		client := &Client{}
-		client.httpClient = &mockHTTPClientError{}
-		response, err := client.RestOpenOrders(reqID, market, pageNumber, pageSize)
-		assert.Equal(t, Response{}, response)
-		assert.Equal(t, errors.New(""), err)
-	})
+func TestRestGetOpenOrders(t *testing.T) {
+	t.Parallel()
+	method := privateGetOpenOrders
+	testTable := []struct{
+		reqID int
+		param *OpenOrderParam
+		expectedParams KVParams
+		body *mockBody
+		shouldValidationError    bool
+		shouldError bool
+	}{
+		{0, &OpenOrderParam{"-", 0, 0}, nil, nil, true, false},
+		{0, &OpenOrderParam{"BTC", 0, 0}, nil, nil, true, false},
+		{0, &OpenOrderParam{"BTC_USDT", -1, 0}, nil, nil, true, false},
+		{0, &OpenOrderParam{"BTC_USDT", 0, -1}, nil, nil, true, false},
+		// valid values
+		{0, nil, KVParams{}, &mockBody{400, mockResponseBody(-1, method, 10004, mockOpenOrders(0))}, false, true},
+		{0, &OpenOrderParam{}, KVParams{}, &mockBody{400, mockResponseBody(-1, method, 10004, mockOpenOrders(0))}, false, true},
+		{0, &OpenOrderParam{"BTC_USDT", 0, 0}, KVParams{"instrument_name": "BTC_USDT"}, &mockBody{400, mockResponseBody(-1, method, 10004, mockOpenOrders(0))}, false, true},
+		{0, &OpenOrderParam{"BTC_USDT", 10, 0}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10}, &mockBody{200, mockResponseBody(-1, method, 0, mockOpenOrders(1, OrderInfo{InstrumentName: "BTC_USDT", Status: "ACTIVE"}))}, false, false},
+		{0, &OpenOrderParam{"BTC_USDT", 10, 1}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, &mockBody{200, mockResponseBody(-1, method, 0, mockOpenOrders(1, OrderInfo{InstrumentName: "BTC_USDT", Status: "ACTIVE"}))}, false, false},
+	}
+	for _, c := range testTable {
+		mockClient := &httpClientMock{}
+		if c.body != nil {
+			mockResponse := &http.Response{
+				StatusCode: c.body.code,
+				Body:       ioutil.NopCloser(bytes.NewReader(c.body.body)),
+			}
+			mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		}
+		cli := &Client{
+			key:    "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestOpenOrders(c.reqID, c.param)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
 
 func TestClient_RestGetInstruments(t *testing.T) {
@@ -654,7 +617,7 @@ func TestClient_PrivateGetAccountSummary(t *testing.T) {
 		}
 		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
 		cli := &Client{
-			key: "something",
+			key:    "something",
 			secret: "something",
 			rest: newHttpClient(mockClient,
 				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
@@ -688,7 +651,7 @@ func TestClient_PrivateGetAccountSummary(t *testing.T) {
 		}
 	}
 }
-func TestClient_GetDepositAddress(t *testing.T)  {
+func TestClient_GetDepositAddress(t *testing.T) {
 	method := privateGetDepositAddress
 
 	testCases := []struct {
@@ -708,12 +671,12 @@ func TestClient_GetDepositAddress(t *testing.T)  {
 		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
 		// valid cases
 		{"BTC", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
-			Currency:  "BTC",
-			Network: "CRO",
+			Currency: "BTC",
+			Network:  "CRO",
 		})), 200, false, false},
 		{"USDT", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
-			Currency:  "BTC",
-			Network: "CRO",
+			Currency: "BTC",
+			Network:  "CRO",
 		})), 200, false, false},
 	}
 	for _, r := range testCases {
@@ -724,7 +687,7 @@ func TestClient_GetDepositAddress(t *testing.T)  {
 		}
 		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
 		cli := &Client{
-			key: "something",
+			key:    "something",
 			secret: "something",
 			rest: newHttpClient(mockClient,
 				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
@@ -759,73 +722,6 @@ func TestClient_GetDepositAddress(t *testing.T)  {
 	}
 }
 
-func TestClient_getDepositHistory(t *testing.T)  {
-	method := privateGetDepositAddress
-
-	testCases := []struct {
-		instrumentName        string
-		responseBody          []byte
-		responseCode          int
-		shouldErrorValidation bool
-		shouldError           bool
-	}{
-		// invalid arguments
-		{"_USDT", nil, 400, true, false},
-		{"BTC_", nil, 400, true, false},
-		{"_", nil, 400, true, false},
-		{"", nil, 400, true, false},
-		// invalid cases
-		{"BTC_USDT", mockResponseBody(1, method, 10004, nil), 400, true, false},
-		{"BTC_USDT", mockResponseBody(1, method, 10001, nil), 500, true, false},
-		// valid cases
-		{"BTC", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
-			Currency:  "BTC",
-			Network: "CRO",
-		})), 200, false, false},
-		{"USDT", mockResponseBody(1, method, 0, mockDepositAddress(DepositAddress{
-			Currency:  "BTC",
-			Network: "CRO",
-		})), 200, false, false},
-	}
-	for _, r := range testCases {
-		mockClient := &httpClientMock{}
-		mockResponse := &http.Response{
-			StatusCode: r.responseCode,
-			Body:       ioutil.NopCloser(bytes.NewReader(r.responseBody)),
-		}
-		mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
-		cli := &Client{
-			key: "something",
-			secret: "something",
-			rest: newHttpClient(mockClient,
-				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
-			)}
-		res, err := cli.RestGetDepositAddress(r.instrumentName)
-		if r.shouldErrorValidation {
-			mockClient.AssertNotCalled(t, "Do")
-		} else {
-			assert.Len(t, mockClient.Calls, 1, r)
-			req := mockClient.Calls[0].Arguments[0].(*http.Request)
-			b, _ := ioutil.ReadAll(req.Body)
-			var body map[string]interface{}
-			_ = json.Unmarshal(b, &body)
-			params := body["params"].(map[string]interface{})
-			assert.Equal(t, "POST", req.Method)
-			assert.Contains(t, req.URL.Path, method)
-			if r.instrumentName != "" {
-				assert.Equal(t, r.instrumentName, params["currency"])
-			} else {
-				assert.Equal(t, map[string]interface{}{}, params)
-			}
-			assert.NotEmpty(t, body["api_key"])
-			assert.NotEmpty(t, body["sig"])
-			mockClient.AssertExpectations(t)
-		}
-		if r.shouldError {
-			assert.NotNil(t, err, r)
-		} else if !r.shouldErrorValidation && !r.shouldError {
-			assert.Nil(t, err, r)
-			assert.NotNil(t, res.DepositAddressList)
-		}
-	}
+func TestClient_GetDepositHistory(t *testing.T) {
+	//method := privateGetDepositHistory
 }

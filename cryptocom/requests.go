@@ -212,34 +212,6 @@ func (c *Client) getOrderDetail(reqID int, remoteID string) (req *Request, err e
 	return
 }
 
-func (c *Client) restGetOrderDetailsRequest(reqID int, remoteID string) *Request {
-	r := &Request{
-		Id:     reqID,
-		Method: privateGetOrderDetail,
-		Params: KVParams{
-			"order_id": remoteID,
-		},
-		ApiKey: c.key,
-		Nonce:  generateNonce(),
-	}
-
-	c.generateSignature(r)
-	return r
-}
-
-func (c *Client) restGetBalanceRequest(reqID int) *Request {
-	r := &Request{
-		Id:     reqID,
-		Method: privateGetAccountSummary,
-		Params: KVParams{},
-		ApiKey: c.key,
-		Nonce:  generateNonce(),
-	}
-
-	c.generateSignature(r)
-	return r
-}
-
 func (c *Client) privateGetTrades(reqID int, params *TradeParams) (*Request, error) {
 	pr, err := params.Encode()
 	if err != nil {
@@ -273,23 +245,6 @@ func (c *Client) privateGetOrderHistory(reqID int, params *TradeParams) (*Reques
 		Nonce:  nonce,
 	}
 	return r, nil
-}
-
-func (c *Client) restOpenOrdersRequest(reqID int, market string, page int, pageSize int) *Request {
-	r := &Request{
-		Id:     reqID,
-		Method: privateGetOpenOrders,
-		Params: KVParams{
-			"instrument_name": market,
-			"page":            strconv.Itoa(page),
-			"page_size":       strconv.Itoa(pageSize),
-		},
-		ApiKey: c.key,
-		Nonce:  generateNonce(),
-	}
-
-	c.generateSignature(r)
-	return r
 }
 
 func (c *Client) getInstruments() *Request {
@@ -466,14 +421,21 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 				return
 			}
 			if orderOption != nil {
-				if orderOption.ExecInst != "" && orderOption.ExecInst != PostOnly.String() {
+				if orderOption.ExecInst != "" && orderOption.ExecInst != PostOnly {
 					err = fmt.Errorf("exec_inst value not allowed. either leave it empty or set it to %s", PostOnly)
 					return
 				}
-				if orderOption.TimeInForce != "" &&
-					!(orderOption.TimeInForce == GoodTillCancel.String() || orderOption.TimeInForce == FillOrKill.String() || orderOption.TimeInForce == order.ImmediateOrCancel.String()) {
-					err = fmt.Errorf("time_in_force value not allowed. either leave it empty or set it to %s, %s, or %s", GoodTillCancel, FillOrKill, order.ImmediateOrCancel)
-					return
+				if orderOption.TimeInForce != "" {
+					switch orderOption.TimeInForce {
+					case
+					GoodTillCancel,
+					FillOrKill,
+					order.ImmediateOrCancel:
+						break
+					default:
+						err = fmt.Errorf("time_in_force value not allowed. either leave it empty or set it to %s, %s, or %s", GoodTillCancel, FillOrKill, order.ImmediateOrCancel)
+						return
+					}
 				}
 			}
 		}
@@ -540,7 +502,7 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 			params["notional"] = orderOption.Notional
 		}
 		if orderOption.TriggerPrice > 0 {
-			params["notional"] = orderOption.TriggerPrice
+			params["trigger_price"] = orderOption.TriggerPrice
 		}
 		// set params only if order type is order.Limit
 		if orderOption.TimeInForce != "" && orderType == order.Limit {
@@ -562,30 +524,20 @@ func (c *Client) createOrder(instrumentName string, side order.Side, orderType o
 	return
 }
 
-func (c *Client) getOpenOrders(market string, pageSize, page int) (req *Request, err error) {
-	if err = tryOrError(func() error {
-		if market == "" {
-			return nil
-		}
-		return validInstrument(market)
-	}, func() error {
-		return validPagination(pageSize, page)
-	}); err != nil {
-		return
+func (c *Client) getOpenOrders(reqID int, param *OpenOrderParam) (req *Request, err error) {
+	pr, err := param.Encode()
+	if err != nil {
+		return nil, err
 	}
-	if pageSize == 0 {
-		pageSize = 20
-	}
-	params := KVParams{
-		"page_size": pageSize,
-		"page": page,
-	}
-	if market != "" {
-		params["instrument_name"] = market
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
 	}
 	req = &Request{
+		Id: reqID,
 		Method: privateGetOpenOrders,
-		Params: params,
+		Params: pr,
+		Nonce: nonce,
 	}
 	return
 }
@@ -605,7 +557,7 @@ func (c *Client) createWithdrawal(reqID int, params WithdrawParams) (req *Reques
 	}
 	return
 }
-func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParams) (req *Request, err error) {
+func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParam) (req *Request, err error) {
 	pr, err := params.Encode()
 	if err != nil {
 		return
@@ -621,7 +573,7 @@ func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParams) 
 	}
 	return
 }
-func (c *Client) getDepositHistory(reqID int, params *DepositHistoryParams) (req *Request, err error) {
+func (c *Client) getDepositHistory(reqID int, params *DepositHistoryParam) (req *Request, err error) {
 	pr, err := params.Encode()
 	if err != nil {
 		return

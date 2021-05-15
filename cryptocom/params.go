@@ -7,12 +7,13 @@ import (
 )
 
 type KVParams map[string]interface{}
+
 type TradeParams struct {
-	Market   string
-	StartTS  int64
-	EndTS    int64
-	PageSize int
-	Page     int
+	Market   string `json:"instrument_name"`
+	StartTS  int64  `json:"start_ts"`
+	EndTS    int64  `json:"end_ts"`
+	PageSize int    `json:"page_size"`
+	Page     int    `json:"page"`
 }
 
 func (t *TradeParams) Validate() error {
@@ -47,20 +48,29 @@ func (t *TradeParams) Validate() error {
 }
 
 func (t *TradeParams) Encode() (KVParams, error) {
+	pr := KVParams{}
 	if t == nil {
-		return KVParams{}, nil
+		return pr, nil
 	}
 	if err := t.Validate(); err != nil {
 		return nil, err
 	}
-
-	return KVParams{
-		"end_ts":          t.EndTS,
-		"instrument_name": t.Market,
-		"start_ts":        t.StartTS,
-		"page":            t.Page,
-		"page_size":       t.PageSize,
-	}, nil
+	if t.EndTS > 0 {
+		pr["end_ts"] = t.EndTS
+	}
+	if t.Market != "" {
+		pr["instrument_name"] = t.Market
+	}
+	if t.StartTS > 0 {
+		pr["start_ts"] = t.StartTS
+	}
+	if t.Page > 0 {
+		pr["page"] = t.Page
+	}
+	if t.PageSize > 0 {
+		pr["page_size"] = t.PageSize
+	}
+	return pr, nil
 }
 
 type WithdrawParams struct {
@@ -105,7 +115,7 @@ func (w WithdrawParams) Encode() (KVParams, error) {
 	return pr, nil
 }
 
-type WithdrawHistoryParams struct {
+type WithdrawHistoryParam struct {
 	Currency string
 	StartTS  int64
 	EndTS    int64
@@ -114,7 +124,7 @@ type WithdrawHistoryParams struct {
 	Status   WithdrawStatus
 }
 
-func (w *WithdrawHistoryParams) Validate() error {
+func (w *WithdrawHistoryParam) Validate() error {
 	return tryOrError(func() error {
 		if w.Currency == "" {
 			return nil
@@ -153,7 +163,7 @@ func (w *WithdrawHistoryParams) Validate() error {
 		}
 	})
 }
-func (w *WithdrawHistoryParams) Encode() (KVParams, error) {
+func (w *WithdrawHistoryParam) Encode() (KVParams, error) {
 	pr := KVParams{}
 	if w == nil {
 		return pr, nil
@@ -182,7 +192,8 @@ func (w *WithdrawHistoryParams) Encode() (KVParams, error) {
 
 	return pr, nil
 }
-type DepositHistoryParams struct {
+
+type DepositHistoryParam struct {
 	Currency string
 	StartTS  int64
 	EndTS    int64
@@ -191,7 +202,7 @@ type DepositHistoryParams struct {
 	Status   DepositStatus
 }
 
-func (w *DepositHistoryParams) Validate() error {
+func (w *DepositHistoryParam) Validate() error {
 	return tryOrError(func() error {
 		if w.Currency == "" {
 			return nil
@@ -227,7 +238,7 @@ func (w *DepositHistoryParams) Validate() error {
 		}
 	})
 }
-func (w *DepositHistoryParams) Encode() (KVParams, error) {
+func (w *DepositHistoryParam) Encode() (KVParams, error) {
 	pr := KVParams{}
 	if w == nil {
 		return pr, nil
@@ -255,4 +266,39 @@ func (w *DepositHistoryParams) Encode() (KVParams, error) {
 	}
 
 	return pr, nil
+}
+
+type OpenOrderParam struct {
+	Market   string
+	PageSize int
+	Page     int
+}
+func (o *OpenOrderParam) Validate() error {
+	return tryOrError(func() error {
+		if o.Market == "" {
+			return nil
+		}
+		return validInstrument(o.Market)
+	}, func() error {
+		return validPagination(o.PageSize, o.Page)
+	})
+}
+func (o *OpenOrderParam) Encode() (pr KVParams, err error) {
+	pr = KVParams{}
+	if o == nil {
+		return
+	}
+	if err = o.Validate(); err != nil {
+		return
+	}
+	if o.Market != "" {
+		pr["instrument_name"] = o.Market
+	}
+	if o.Page > 0 {
+		pr["page"] = o.Page
+	}
+	if o.PageSize > 0 {
+		pr["page_size"] = o.PageSize
+	}
+	return
 }

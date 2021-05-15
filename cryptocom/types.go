@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"encoding/json"
+	"github.com/openware/pkg/order"
 	"strings"
 	"time"
 )
@@ -19,12 +20,12 @@ const (
 )
 
 type Request struct {
-	Id        int
-	Method    string
-	ApiKey    string
-	Signature string
-	Nonce     int64
-	Params    KVParams
+	Id        int      `json:"id"`
+	Method    string   `json:"method"`
+	ApiKey    string   `json:"api_key"`
+	Signature string   `json:"sig"`
+	Nonce     int64    `json:"nonce"`
+	Params    KVParams `json:"params"`
 }
 
 type Response struct {
@@ -159,8 +160,8 @@ type Scope struct {
 type OrderOption struct {
 	Notional      float64
 	ClientOrderID string
-	TimeInForce   string
-	ExecInst      string
+	TimeInForce   order.Type
+	ExecInst      order.Type
 	TriggerPrice  float64
 }
 
@@ -175,8 +176,8 @@ type OrderDetailResponse struct {
 	Result OrderDetail `json:"result"`
 }
 type OrderDetail struct {
-	TradeList []Trade `json:"trade_list"`
-	OrderInfo Order   `json:"order_info"`
+	TradeList []Trade   `json:"trade_list"`
+	OrderInfo OrderInfo `json:"order_info"`
 }
 type Trade struct {
 	Side           string  `json:"side"`

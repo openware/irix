@@ -223,7 +223,7 @@ func (c *Client) generateSignature(r *Request) {
 		case float64, float32:
 			val = fmt.Sprintf("%.12f", v)
 		default:
-			val = v.(string)
+			val = fmt.Sprintf("%v", v)
 		}
 		parameters = append(parameters, key+val)
 	}

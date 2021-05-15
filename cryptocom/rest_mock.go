@@ -48,3 +48,20 @@ func mockAccounts(data ...AccountSummary) AccountResult {
 func mockDepositAddress(data ...DepositAddress) DepositAddressResult {
 	return DepositAddressResult{DepositAddressList: data}
 }
+func mockOrderDetail(info OrderInfo, tradeList ...Trade) OrderDetail {
+	return OrderDetail{
+		TradeList: tradeList,
+		OrderInfo: info,
+	}
+}
+func mockTrades(tradeList ...Trade) TradeResult {
+	return TradeResult{
+		TradeList: tradeList,
+	}
+}
+func mockOpenOrders(count int, orders ...OrderInfo) OpenOrdersResult {
+	return OpenOrdersResult{
+		Count: count,
+		OrderList: orders,
+	}
+}

@@ -106,10 +106,12 @@ const (
 	TakeProfitLimit order.Type = "TAKE_PROFIT_LIMIT"
 	StopLoss        order.Type = "STOP_LOSS"
 	FillOrKill      order.Type = "FILL_OR_KILL"
-	GoodTillCancel order.Type = "GOOD_TILL_CANCEL"
-	PostOnly order.Type = "POST_ONLY"
+	GoodTillCancel  order.Type = "GOOD_TILL_CANCEL"
+	PostOnly        order.Type = "POST_ONLY"
 )
+
 type WithdrawStatus int
+
 const (
 	WithdrawPending WithdrawStatus = iota
 	WithdrawProcessing
@@ -120,6 +122,7 @@ const (
 	WithdrawCancelled
 	WithdrawNone = -1
 )
+
 type DepositStatus int
 
 const (

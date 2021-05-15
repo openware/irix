@@ -52,3 +52,4 @@ func isValidCurrency(code string) (err error) {
 	}
 	return
 }
+
