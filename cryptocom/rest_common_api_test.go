@@ -342,9 +342,9 @@ func TestClient_RestCreateWithdrawal(t *testing.T)  {
 	}{
 		{0, WithdrawParams{}, nil, nil, true, false},
 		{0, WithdrawParams{Currency: "BTC_USDT"}, nil, nil, true, false},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress}, &mockBody{400, mockResponseBody(-1, method, 10004, WithdrawResult{})}, KVParams{"currency":"BTC", "amount": 0.1, "address": faker.BitcoinTestAddress}, false, true},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid"}, &mockBody{400, mockResponseBody(-1, method, 10004, WithdrawResult{})}, KVParams{"currency":"BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid"}, false, true},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid", AddressTag: "XRP"}, &mockBody{400, mockResponseBody(-1, method, 0, WithdrawResult{})}, KVParams{"currency":"BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid", "address_tag": "XRP"}, false, false},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress}, false, true},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid"}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid"}, false, true},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid", AddressTag: "XRP"}, &mockBody{200, mockResponseBody(-1, method, 0, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid", "address_tag": "XRP"}, false, false},
 	}
 	for _, c := range testTable {
 		cli, mockClient := setupHttpMock(c.body)
@@ -382,7 +382,59 @@ func TestClient_RestCreateWithdrawal(t *testing.T)  {
 	}
 }
 func TestClient_RestGetWithdrawalHistory(t *testing.T)  {
-
+	method := privateGetWithdrawalHistory
+	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
+	testTable := []struct{
+		reqID int
+		in *WithdrawHistoryParam
+		body *mockBody
+		expectedParams KVParams
+		shouldValidationError bool
+		shouldError bool
+	}{
+		{0, &WithdrawHistoryParam{StartTS: 2, EndTS: 1}, nil, nil, true, false},
+		{0, &WithdrawHistoryParam{Currency: "BTC_USDT"}, nil, nil, true, false},
+		{0, nil, &mockBody{400, mockResponseBody(-1, method, 10004, mockWithdrawHistory())}, KVParams{}, false, true},
+		{0, &WithdrawHistoryParam{}, &mockBody{400, mockResponseBody(-1, method, 10004, mockWithdrawHistory())}, KVParams{}, false, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", StartTS: timeAgo[0]}, &mockBody{400, mockResponseBody(-1, method, 10004, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0]}, false, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0]}, &mockBody{500, mockResponseBody(-1, method, 10005, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1]}, false, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1}, &mockBody{500, mockResponseBody(-1, method, 10004, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1}, false, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1, Status: WithdrawCancelled}, &mockBody{200, mockResponseBody(-1, method, 0, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1, "status": "6"}, false, false},
+	}
+	for _, c := range testTable {
+		cli, mockClient := setupHttpMock(c.body)
+		res, err := cli.RestGetWithdrawalHistory(c.reqID, c.in)
+		if c.shouldValidationError {
+			assert.Nil(t, res)
+			assert.NotNil(t, err)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
 func TestClient_GetDepositAddress(t *testing.T) {
 	method := privateGetDepositAddress
@@ -455,6 +507,58 @@ func TestClient_GetDepositAddress(t *testing.T) {
 	}
 }
 
-func TestClient_GetDepositHistory(t *testing.T) {
-	//method := privateGetDepositHistory
+func TestClient_RestGetDepositHistory(t *testing.T)  {
+	method := privateGetDepositHistory
+	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
+	testTable := []struct{
+		reqID int
+		in *DepositHistoryParam
+		body *mockBody
+		expectedParams KVParams
+		shouldValidationError bool
+		shouldError bool
+	}{
+		{0, &DepositHistoryParam{StartTS: 2, EndTS: 1}, nil, nil, true, false},
+		{0, &DepositHistoryParam{Currency: "BTC_USDT"}, nil, nil, true, false},
+		{0, nil, &mockBody{400, mockResponseBody(-1, method, 10004, mockDepositHistory())}, KVParams{}, false, true},
+		{0, &DepositHistoryParam{}, &mockBody{400, mockResponseBody(-1, method, 10004, mockDepositHistory())}, KVParams{}, false, true},
+		{0, &DepositHistoryParam{Currency: "BTC", StartTS: timeAgo[0]}, &mockBody{400, mockResponseBody(-1, method, 10004, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0]}, false, true},
+		{0, &DepositHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0]}, &mockBody{500, mockResponseBody(-1, method, 10005, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1]}, false, true},
+		{0, &DepositHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1}, &mockBody{500, mockResponseBody(-1, method, 10004, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1}, false, true},
+		{0, &DepositHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1, Status: DepositFailed}, &mockBody{200, mockResponseBody(-1, method, 0, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1, "status": "2"}, false, false},
+	}
+	for _, c := range testTable {
+		cli, mockClient := setupHttpMock(c.body)
+		res, err := cli.RestGetDepositHistory(c.reqID, c.in)
+		if c.shouldValidationError {
+			assert.Nil(t, res)
+			assert.NotNil(t, err)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }

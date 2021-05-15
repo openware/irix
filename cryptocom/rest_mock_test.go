@@ -10,13 +10,16 @@ import (
 )
 
 func mockResponseBody(id int, method string, code int, result interface{}) []byte {
-	b, _ := json.Marshal(map[string]interface {
+	b, err := json.Marshal(map[string]interface {
 	}{
 		"id":     id,
 		"method": method,
 		"code":   code,
 		"result": result,
 	})
+	if err != nil {
+		panic(err)
+	}
 	return b
 }
 func mockOrderbook(instrumentName string, depth int, bids, asks [][]float64, t int64) OrderbookResult {
@@ -73,6 +76,18 @@ func mockOpenOrders(count int, orders ...OrderInfo) OpenOrdersResult {
 	}
 }
 
+func mockWithdrawHistory(list ...Withdraw) WithdrawHistoryResult {
+	return WithdrawHistoryResult{
+		WithdrawList: list,
+	}
+}
+
+func mockDepositHistory(list ...Deposit) DepositHistoryResult {
+	return DepositHistoryResult{
+		DepositList: list,
+	}
+}
+
 func setupHttpMock(body *mockBody) (cli *Client, mockClient *httpClientMock) {
 	mockClient = &httpClientMock{}
 	if body != nil {
@@ -87,6 +102,7 @@ func setupHttpMock(body *mockBody) (cli *Client, mockClient *httpClientMock) {
 		secret: "something",
 		rest: newHttpClient(mockClient,
 			fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
-		)}
+		),
+	}
 	return
 }

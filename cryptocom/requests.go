@@ -2,9 +2,7 @@ package cryptocom
 
 import (
 	"errors"
-	"fmt"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/pkg/order"
 	"regexp"
 	"strconv"
 	"strings"
@@ -141,7 +139,7 @@ func (c *Client) createOrderMarketRequest(
 	}
 }
 
-func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, err error) {
+func (c *Client) cancelOrder(reqID int, market, remoteID string) (req *Request, err error) {
 	if err = tryOrError(func() error {
 		return validInstrument(market)
 	}, func() error {
@@ -153,13 +151,12 @@ func (c *Client) cancelOrder(reqID int, remoteID, market string) (req *Request, 
 		return
 	}
 
-	id := reqID
 	nonce := generateNonce()
-	if id == 0 {
-		id = int(nonce)
+	if reqID == 0 {
+		reqID = int(nonce)
 	}
 	req = &Request{
-		Id:     id,
+		Id:     reqID,
 		Method: privateCancelOrder,
 		Params: KVParams{
 			"instrument_name": market,
@@ -395,128 +392,17 @@ func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
 	return
 }
 
-func (c *Client) createOrder(instrumentName string, side order.Side, orderType order.Type, price, quantity float64, orderOption *OrderOption) (req *Request, err error){
-	if err = tryOrError(func() error {
-		return validInstrument(instrumentName)
-	}, func() (err error) {
-		if side != order.Buy && side != order.Sell {
-			err = errors.New("invalid order side")
-		}
-		return
-	}, func() error {
-		switch orderType {
-		case order.Limit, order.StopLimit, order.Market, TakeProfitLimit, StopLoss, order.TakeProfit:
-			return nil
-		default:
-			return errors.New("invalid order type")
-		}
-	}, func() (err error) {
-		if orderType == order.Limit {
-			if quantity <= 0 {
-				err = errors.New("quantity required")
-				return
-			}
-			if price <= 0 {
-				err = errors.New("price required")
-				return
-			}
-			if orderOption != nil {
-				if orderOption.ExecInst != "" && orderOption.ExecInst != PostOnly {
-					err = fmt.Errorf("exec_inst value not allowed. either leave it empty or set it to %s", PostOnly)
-					return
-				}
-				if orderOption.TimeInForce != "" {
-					switch orderOption.TimeInForce {
-					case
-					GoodTillCancel,
-					FillOrKill,
-					order.ImmediateOrCancel:
-						break
-					default:
-						err = fmt.Errorf("time_in_force value not allowed. either leave it empty or set it to %s, %s, or %s", GoodTillCancel, FillOrKill, order.ImmediateOrCancel)
-						return
-					}
-				}
-			}
-		}
-		return
-	}, func() (err error) {
-		if orderType == order.Market {
-			if side == order.Buy && (orderOption == nil || orderOption.Notional <= 0) {
-				err = errors.New("notional required")
-				return
-			}
-			if side == order.Sell && quantity <= 0 {
-				err = errors.New("quantity required")
-				return
-			}
-		}
-		return
-	}, func() (err error) {
-		if orderType == order.StopLimit || orderType == TakeProfitLimit {
-			if price <= 0 {
-				err = errors.New("price required")
-				return
-			}
-			if quantity <= 0 {
-				err = errors.New("quantity required")
-				return
-			}
-			if orderOption == nil || orderOption.TriggerPrice <= 0 {
-				err = errors.New("trigger_price required")
-				return
-			}
-		}
-		return
-	}, func() (err error) {
-		if orderType == StopLoss || orderType == order.TakeProfit {
-			if side == order.Buy && (orderOption == nil || orderOption.Notional <= 0) {
-				err = errors.New("notional required")
-				return
-			}
-			if side == order.Sell && quantity <= 0 {
-				err = errors.New("quantity required")
-				return
-			}
-			if orderOption == nil || orderOption.TriggerPrice <= 0 {
-				err = errors.New("trigger_price required")
-				return
-			}
-		}
-		return
-	}); err != nil {
+func (c *Client) createOrder(reqID int, param CreateOrderParam) (req *Request, err error){
+	params, err := param.Encode()
+	if err != nil {
 		return
 	}
-	// validate cases based on the requirements
-
 	nonce := generateNonce()
-	params := KVParams{
-		"instrument_name": instrumentName,
-		"side": side.String(),
-		"type": strings.ReplaceAll(orderType.String(), " ", "-"),
-		"price": price,
-		"quantity": quantity,
-	}
-	if orderOption != nil {
-		if orderOption.Notional > 0 {
-			params["notional"] = orderOption.Notional
-		}
-		if orderOption.TriggerPrice > 0 {
-			params["trigger_price"] = orderOption.TriggerPrice
-		}
-		// set params only if order type is order.Limit
-		if orderOption.TimeInForce != "" && orderType == order.Limit {
-			params["time_in_force"] = orderOption.TimeInForce
-		}
-		if orderOption.ExecInst != "" && orderType == order.Limit {
-			params["exec_inst"] = orderOption.ExecInst
-		}
-		if orderOption.ClientOrderID != "" {
-			params["client_oid"] = orderOption.ClientOrderID
-		}
+	if reqID == 0 {
+		reqID = int(nonce)
 	}
 	req = &Request{
-		Id:        int(nonce),
+		Id:        reqID,
 		Method:    privateCreateOrder,
 		Nonce:     nonce,
 		Params:    params,
@@ -571,6 +457,7 @@ func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParam) (
 		Id: reqID,
 		Method: privateGetWithdrawalHistory,
 		Params: pr,
+		Nonce: nonce,
 	}
 	return
 }
@@ -587,6 +474,7 @@ func (c *Client) getDepositHistory(reqID int, params *DepositHistoryParam) (req 
 		Id: reqID,
 		Method: privateGetDepositHistory,
 		Params: pr,
+		Nonce: nonce,
 	}
 	return
 }

@@ -354,53 +354,49 @@ func TestUnsubscribeChannel(t *testing.T) {
 func TestClient_CreateOrder(t *testing.T)  {
 	t.Parallel()
 	testTable := []struct{
-		instrumentName string
-		side order.Side
-		orderType order.Type
-		price float64
-		quantity float64
-		orderOption *OrderOption
+		reqID int
+		in CreateOrderParam
 		shouldError bool
 	}{
-		{"random", order.AnySide, order.AnyType, 0, 0, nil, true},
-		{"BTC_USDT", order.AnySide, order.AnyType, 0, 0,  nil, true},
-		{"BTC_USDT", order.Sell, order.AnyType, -1, 0, nil, true},
-		{"BTC_USDT", order.Sell, order.AnyType, 0.001, 0, nil, true},
-		{"BTC_USDT", order.Buy, order.AnyType, 0.001, 0.0001, nil, true},
+		{0, CreateOrderParam{}, true},
+		{0, CreateOrderParam{Market: "random", Side: order.AnySide, OrderType: order.AnyType, Price: 0, Quantity: 0}, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.AnySide, OrderType: order.AnyType, Price: 0, Quantity: 0  }, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Sell, OrderType: order.AnyType, Price: -1, Quantity: 0}, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Sell, OrderType: order.AnyType, Price: 0.001, Quantity: 0 }, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.AnyType, Price: 0.001, Quantity: 0.0001 }, true},
 		// edge cases but should fail
-		{"BTC_USDT", order.Buy, order.Limit, 0, 0.0001, nil, true},
-		{"BTC_USDT", order.Sell, order.Limit, 0.001, 0, nil, true},
-		{"BTC_USDT", order.Buy, order.Market, 0, 0, nil, true},
-		{"BTC_USDT", order.Buy, order.Market, 0, 0, &OrderOption{Notional: 0}, true},
-		{"BTC_USDT", order.Sell, order.Market, 0, 0, nil, true},
-		{"BTC_USDT", order.Sell, order.StopLimit, 0, 0, nil, true},
-		{"BTC_USDT", order.Sell, order.StopLimit, 0.1, 0, nil, true},
-		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, nil, true},
-		{"BTC_USDT", order.Buy, order.StopLimit, 0.1, 0.1, &OrderOption{}, true},
-		{"BTC_USDT", order.Sell, TakeProfitLimit, 0, 0, nil, true},
-		{"BTC_USDT", order.Sell, TakeProfitLimit, 0.1, 0, nil, true},
-		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, nil, true},
-		{"BTC_USDT", order.Buy, TakeProfitLimit, 0.1, 0.1, &OrderOption{}, true},
-		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, nil, true},
-		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
-		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
-		{"BTC_USDT", order.Buy, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0.1, TriggerPrice: 0}, true},
-		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, nil, true},
-		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0, TriggerPrice: 0}, true},
-		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0, &OrderOption{Notional: 0, TriggerPrice: 0.1}, true},
-		{"BTC_USDT", order.Sell, StopLoss, 0.1, 0.1, &OrderOption{Notional: 0.1, TriggerPrice: 0}, true},
-		{"BTC_USDT", order.Sell, order.Limit, 0.1, 0.1, &OrderOption{ExecInst: GoodTillCancel}, true},
-		{"BTC_USDT", order.Sell, order.Limit, 0.1, 0.1, &OrderOption{TimeInForce: PostOnly}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0, Quantity: 0.0001}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.Limit, Price: 0.001, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: order.Market, Price: 0, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: order.Market, Price: 0, Quantity: 0, Notional: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.Market, Price: 0, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.StopLimit, Price: 0, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.StopLimit, Price: 0.1, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: order.StopLimit, Price: 0.1, Quantity: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: TakeProfitLimit, Price: 0, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: TakeProfitLimit,Price:  0.1, Quantity: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: TakeProfitLimit, Price: 0.1, Quantity: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: TakeProfitLimit, Price: 0.1, Quantity: 0.1 }, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.1, Quantity: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.1, Quantity: 0.1, Notional: 0, TriggerPrice: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.1, Quantity: 0.1, Notional: 0, TriggerPrice: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.1, Quantity: 0.1, Notional: 0.1, TriggerPrice: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: StopLoss, Price: 0.1, Quantity: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: StopLoss, Price: 0.1, Quantity: 0.1, Notional: 0, TriggerPrice: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: StopLoss, Price: 0.1, Quantity: 0, Notional: 0, TriggerPrice: 0.1}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: StopLoss, Price: 0.1, Quantity: 0.1, Notional: 0.1, TriggerPrice: 0}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.Limit, Price: 0.1, Quantity: 0.1, ExecInst: GoodTillCancel}, true},
+		{0, CreateOrderParam{ Market: "BTC_USDT", Side: order.Sell, OrderType: order.Limit, Price: 0.1, Quantity: 0.1, TimeInForce: PostOnly}, true},
 		// valid cases
-		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, nil, false},
-		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001}, false},
-		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TimeInForce: GoodTillCancel}, false},
-		{"BTC_USDT", order.Buy, order.Limit, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TimeInForce: GoodTillCancel, ExecInst: PostOnly}, false},
-		{"BTC_USDT", order.Buy, StopLoss, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TriggerPrice: 0.001}, false},
-		{"BTC_USDT", order.Buy, StopLoss, 0.001, 0.0001, &OrderOption{Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TimeInForce: GoodTillCancel}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TimeInForce: GoodTillCancel, ExecInst: PostOnly}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001}, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, false},
 	}
 	for _, c := range testTable {
-		req, err := cl.createOrder(c.instrumentName, c.side, c.orderType, c.price, c.quantity, c.orderOption)
+		req, err := cl.createOrder(c.reqID, c.in)
 		if c.shouldError {
 			assert.NotNil(t, err, c)
 			assert.Nil(t, req, c)
@@ -408,29 +404,27 @@ func TestClient_CreateOrder(t *testing.T)  {
 			assert.Nil(t, err, c)
 			assert.NotNil(t, req, c)
 			assert.Equal(t, privateCreateOrder, req.Method, c)
-			assert.Equal(t, c.instrumentName, req.Params["instrument_name"])
-			assert.Equal(t, c.side.String(), req.Params["side"])
-			assert.Equal(t, strings.ReplaceAll(c.orderType.String(), " ", "-"), req.Params["type"])
-			assert.Equal(t, c.quantity, req.Params["quantity"])
-			assert.Equal(t, c.price, req.Params["price"])
-			if c.orderOption != nil {
-				if c.orderOption.Notional > 0 {
-					assert.Equal(t, c.orderOption.Notional, req.Params["notional"])
+			assert.Equal(t, c.in.Market, req.Params["instrument_name"])
+			assert.Equal(t, c.in.Side.String(), req.Params["side"])
+			assert.Equal(t, strings.ReplaceAll(c.in.OrderType.String(), " ", "-"), req.Params["type"])
+			assert.Equal(t, c.in.Quantity, req.Params["quantity"])
+			assert.Equal(t, c.in.Price, req.Params["price"])
+				if c.in.Notional > 0 {
+					assert.Equal(t, c.in.Notional, req.Params["notional"])
 				}
-				if c.orderOption.TriggerPrice > 0 {
-					assert.Equal(t, c.orderOption.TriggerPrice, req.Params["trigger_price"])
+				if c.in.TriggerPrice > 0 {
+					assert.Equal(t, c.in.TriggerPrice, req.Params["trigger_price"])
 				}
 				// fully optional
-				if c.orderOption.ClientOrderID != "" {
-					assert.Equal(t, c.orderOption.ClientOrderID, req.Params["client_oid"])
+				if c.in.ClientOrderID != "" {
+					assert.Equal(t, c.in.ClientOrderID, req.Params["client_oid"])
 				}
-				if c.orderOption.TimeInForce != "" {
-					assert.Equal(t, c.orderOption.TimeInForce, req.Params["time_in_force"])
+				if c.in.TimeInForce != "" {
+					assert.Equal(t, c.in.TimeInForce, req.Params["time_in_force"])
 				}
-				if c.orderOption.ExecInst != "" {
-					assert.Equal(t, c.orderOption.ExecInst, req.Params["exec_inst"])
+				if c.in.ExecInst != "" {
+					assert.Equal(t, c.in.ExecInst, req.Params["exec_inst"])
 				}
-			}
 		}
 	}
 }
@@ -716,10 +710,18 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 		{0, &WithdrawHistoryParam{Currency: "BTC", PageSize: 201}, nil,  true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", PageSize: -1}, nil,  true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", Page: -1}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", StartTS: -1}, nil, true},
+		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: -1}, nil, true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", Status: 14}, nil, true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", Status: -2}, nil, true},
 		// valid cases
+		{
+			0,
+			nil,
+			KVParams{},
+			false,
+		},
 		{
 			0,
 			&WithdrawHistoryParam{},
@@ -796,10 +798,18 @@ func TestClient_getDepositHistory(t *testing.T)  {
 		{0, &DepositHistoryParam{Currency: "BTC", PageSize: 201}, nil,  true},
 		{0, &DepositHistoryParam{Currency: "BTC", PageSize: -1}, nil,  true},
 		{0, &DepositHistoryParam{Currency: "BTC", Page: -1}, nil, true},
+		{0, &DepositHistoryParam{Currency: "BTC", StartTS: -1}, nil, true},
+		{0, &DepositHistoryParam{Currency: "BTC", EndTS: -1}, nil, true},
 		{0, &DepositHistoryParam{Currency: "BTC", StartTS: timestampMs(time.Now().Add(time.Minute)), EndTS: timestampMs(time.Now())}, nil, true},
 		{0, &DepositHistoryParam{Currency: "BTC", Status: 14}, nil, true},
 		{0, &DepositHistoryParam{Currency: "BTC", Status: -2}, nil, true},
 		// valid cases
+		{
+			0,
+			nil,
+			KVParams{},
+			false,
+		},
 		{
 			0,
 			&DepositHistoryParam{},

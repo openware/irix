@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/openware/pkg/order"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io/ioutil"
@@ -91,11 +92,117 @@ func TestClient_PrivateGetAccountSummary(t *testing.T) {
 		}
 	}
 }
-func TestClient_RestCreateOrder(t *testing.T)  {
-
+func TestClient_RestCreateOrder(t *testing.T) {
+	t.Parallel()
+	method := privateCreateOrder
+	testTable := []struct {
+		reqID                 int
+		param                 CreateOrderParam
+		expectedParams        KVParams
+		body                  *mockBody
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Sell, OrderType: order.Limit, Price: 0.1, Quantity: 0.1, ExecInst: GoodTillCancel}, nil, nil, true, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Sell, OrderType: order.Limit, Price: 0.1, Quantity: 0.1, TimeInForce: PostOnly}, nil, nil, true, false},
+		{0, CreateOrderParam{}, nil, nil, true, false},
+		// valid cases
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "LIMIT", "price": 0.001, "quantity": 0.0001}, &mockBody{400, mockResponseBody(-1, method, 10004, Order{})}, false, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "LIMIT", "price": 0.001, "quantity": 0.0001, "notional": 0.0001}, &mockBody{400, mockResponseBody(-1, method, 10004, Order{})}, false, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TimeInForce: GoodTillCancel}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "LIMIT", "price": 0.001, "quantity": 0.0001, "notional": 0.0001, "time_in_force": "GOOD_TILL_CANCEL"}, &mockBody{400, mockResponseBody(-1, method, 10004, Order{})}, false, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: order.Limit, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TimeInForce: GoodTillCancel, ExecInst: PostOnly}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "LIMIT", "price": 0.001, "quantity": 0.0001, "notional": 0.0001, "time_in_force": "GOOD_TILL_CANCEL", "exec_inst": "POST_ONLY"}, &mockBody{400, mockResponseBody(-1, method, 10004, Order{})}, false, true},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "STOP_LOSS", "price": 0.001, "quantity": 0.0001, "notional": 0.0001, "trigger_price": 0.001}, &mockBody{200, mockResponseBody(-1, method, 0, Order{"121212121212", ""})}, false, false},
+		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "STOP_LOSS", "price": 0.001, "quantity": 0.0001, "notional": 0.0001, "trigger_price": 0.001, "client_oid": "someorderid"}, &mockBody{200, mockResponseBody(-1, method, 0, Order{"121212121212", "someorderid"})}, false, false},
+	}
+	for _, c := range testTable {
+		cli, mockClient := setupHttpMock(c.body)
+		res, err := cli.RestCreateOrder(c.reqID, c.param)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2), c.param)
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
-func TestClient_RestCancelOrder(t *testing.T)  {
-
+func TestClient_RestCancelOrder(t *testing.T) {
+	t.Parallel()
+	type input struct {
+		market, orderID string
+	}
+	method := privateCancelOrder
+	testTable := []struct {
+		reqID                 int
+		param                 input
+		expectedParams        KVParams
+		body                  *mockBody
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{0, input{"", ""}, nil, nil, true, false},
+		{0, input{"BTC_USDT", ""}, nil, nil, true, false},
+		// valid values
+		{0, input{"BTC_USDT", "1212121212"}, KVParams{"instrument_name": "BTC_USDT", "order_id": "1212121212"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, false, true},
+		{0, input{"BTC_USDT", "1212121212"}, KVParams{"instrument_name": "BTC_USDT", "order_id": "1212121212"}, &mockBody{200, mockResponseBody(-1, method, 0, nil)}, false, false},
+	}
+	for _, c := range testTable {
+		cli, mockClient := setupHttpMock(c.body)
+		res, err := cli.RestCancelOrder(c.reqID, c.param.market, c.param.orderID)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.False(t, res)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.False(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.True(t, res, c)
+		}
+	}
 }
 func TestClient_RestCancelAllOrder(t *testing.T) {
 
@@ -106,13 +213,13 @@ func TestClient_RestGetOrderHistory(t *testing.T) {
 func TestClient_RestGetOpenOrders(t *testing.T) {
 	t.Parallel()
 	method := privateGetOpenOrders
-	testTable := []struct{
-		reqID int
-		param *OpenOrderParam
-		expectedParams KVParams
-		body *mockBody
-		shouldValidationError    bool
-		shouldError bool
+	testTable := []struct {
+		reqID                 int
+		param                 *OpenOrderParam
+		expectedParams        KVParams
+		body                  *mockBody
+		shouldValidationError bool
+		shouldError           bool
 	}{
 		{0, &OpenOrderParam{"-", 0, 0}, nil, nil, true, false},
 		{0, &OpenOrderParam{"BTC", 0, 0}, nil, nil, true, false},
@@ -295,5 +402,3 @@ func TestClient_RestGetTrades(t *testing.T) {
 		}
 	}
 }
-
-

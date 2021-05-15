@@ -140,7 +140,7 @@ func (c *Client) RestGetAccountSummary(currency string) (res AccountResult, err 
 	return
 }
 
-func (c *Client) RestCreateWithdrawal(reqID int, in WithdrawParams) (res *WithdrawResult, err error) {
+func (c *Client) RestCreateWithdrawal(reqID int, in WithdrawParams) (res *Withdraw, err error) {
 	var (
 		req *Request
 		result WithdrawResponse
@@ -156,6 +156,83 @@ func (c *Client) RestCreateWithdrawal(reqID int, in WithdrawParams) (res *Withdr
 		return
 	}
 	res = &result.Result
+	return
+}
+
+func (c *Client) RestGetWithdrawalHistory(reqID int, in *WithdrawHistoryParam) (res *WithdrawHistoryResult, err error) {
+	var (
+		req *Request
+		result WithdrawHistoryResponse
+	)
+	if err = tryOrError(func() (err error) {
+		req, err = c.getWithdrawalHistory(reqID, in)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		_, err = c.rest.Send("POST", req, &result)
+		return
+	}); err != nil {
+		return
+	}
+	res = &result.Result
+	return
+}
+
+func (c *Client) RestGetDepositHistory(reqID int, in *DepositHistoryParam) (res *DepositHistoryResult, err error) {
+	var (
+		req *Request
+		result DepositHistoryResponse
+	)
+	if err = tryOrError(func() (err error) {
+		req, err = c.getDepositHistory(reqID, in)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		_, err = c.rest.Send("POST", req, &result)
+		return
+	}); err != nil {
+		return
+	}
+	res = &result.Result
+	return
+}
+
+// RestCreateOrder create order via Spot HTTP API
+// it returns Order as a result and error if occurred
+func (c *Client) RestCreateOrder(reqID int, in CreateOrderParam) (res *Order, err error) {
+	var (
+		req *Request
+		result OrderResult
+	)
+	if err = tryOrError(func() (err error) {
+		req, err = c.createOrder(reqID, in)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		_, err = c.rest.Send("POST", req, &result)
+		return
+	}); err != nil {
+		return
+	}
+	res = &result.Result
+	return
+}
+
+func (c *Client) RestCancelOrder(reqID int, market, orderID string) (res bool, err error) {
+	var (
+		req *Request
+	)
+	err = tryOrError(func() (err error) {
+		req, err = c.cancelOrder(reqID, market, orderID)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		result, err := c.rest.Send("POST", req, nil)
+		if err == nil {
+			res = result.Code == 0
+		}
+		return
+	})
 	return
 }
 

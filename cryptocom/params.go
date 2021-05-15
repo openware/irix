@@ -3,6 +3,8 @@ package cryptocom
 import (
 	"errors"
 	"fmt"
+	"github.com/openware/pkg/order"
+	"strings"
 	"time"
 )
 
@@ -273,6 +275,7 @@ type OpenOrderParam struct {
 	PageSize int
 	Page     int
 }
+
 func (o *OpenOrderParam) Validate() error {
 	return tryOrError(func() error {
 		if o.Market == "" {
@@ -299,6 +302,142 @@ func (o *OpenOrderParam) Encode() (pr KVParams, err error) {
 	}
 	if o.PageSize > 0 {
 		pr["page_size"] = o.PageSize
+	}
+	return
+}
+
+type CreateOrderParam struct {
+	Market        string     `json:"instrument_name"`
+	Side          order.Side `json:"side"`
+	OrderType     order.Type `json:"order_type"`
+	Price         float64    `json:"price"`
+	Quantity      float64    `json:"quantity"`
+	Notional      float64    `json:"notional"`
+	ClientOrderID string     `json:"client_order_id"`
+	TimeInForce   order.Type `json:"time_in_force"`
+	ExecInst      order.Type `json:"exec_inst"`
+	TriggerPrice  float64    `json:"trigger_price"`
+}
+
+func (c CreateOrderParam) Validate() error {
+	return tryOrError(func() error {
+		return validInstrument(c.Market)
+	}, func() (err error) {
+		if c.Side != order.Buy && c.Side != order.Sell {
+			err = errors.New("invalid order side")
+		}
+		return
+	}, func() error {
+		switch c.OrderType {
+		case order.Limit, order.StopLimit, order.Market, TakeProfitLimit, StopLoss, order.TakeProfit:
+			return nil
+		default:
+			return errors.New("invalid order type")
+		}
+	}, func() (err error) {
+		if c.OrderType == order.Limit {
+			if c.Quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if c.Price <= 0 {
+				err = errors.New("price required")
+				return
+			}
+				if c.ExecInst != "" && c.ExecInst != PostOnly {
+					err = fmt.Errorf("exec_inst value not allowed. either leave it empty or set it to %s", PostOnly)
+					return
+				}
+				if c.TimeInForce != "" {
+					switch c.TimeInForce {
+					case
+						GoodTillCancel,
+						FillOrKill,
+						order.ImmediateOrCancel:
+						break
+					default:
+						err = fmt.Errorf("time_in_force value not allowed. either leave it empty or set it to %s, %s, or %s", GoodTillCancel, FillOrKill, order.ImmediateOrCancel)
+						return
+					}
+				}
+		}
+		return
+	}, func() (err error) {
+		if c.OrderType == order.Market {
+			if c.Side == order.Buy && (c.Notional <= 0) {
+				err = errors.New("notional required")
+				return
+			}
+			if c.Side == order.Sell && c.Quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+		}
+		return
+	}, func() (err error) {
+		if c.OrderType == order.StopLimit || c.OrderType == TakeProfitLimit {
+			if c.Price <= 0 {
+				err = errors.New("price required")
+				return
+			}
+			if c.Quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if c.TriggerPrice <= 0 {
+				err = errors.New("trigger_price required")
+				return
+			}
+		}
+		return
+	}, func() (err error) {
+		if c.OrderType == StopLoss || c.OrderType == order.TakeProfit {
+			if c.Side == order.Buy && c.Notional <= 0 {
+				err = errors.New("notional required")
+				return
+			}
+			if c.Side == order.Sell && c.Quantity <= 0 {
+				err = errors.New("quantity required")
+				return
+			}
+			if c.TriggerPrice <= 0 {
+				err = errors.New("trigger_price required")
+				return
+			}
+		}
+		return
+	})
+}
+func (c CreateOrderParam) Encode() (pr KVParams, err error) {
+	if err = c.Validate(); err != nil {
+		return
+	}
+	pr = KVParams{
+		"instrument_name": c.Market,
+		"side": c.Side.String(),
+		"type": strings.ReplaceAll(c.OrderType.String(), " ", "-"),
+	}
+	if c.Price > 0 {
+		pr["price"] = c.Price
+	}
+	if c.Quantity > 0 {
+		pr["quantity"] = c.Quantity
+	}
+	if c.Notional > 0 {
+		pr["notional"] = c.Notional
+	}
+	if c.TriggerPrice > 0 {
+		pr["trigger_price"] = c.TriggerPrice
+	}
+	// set params only if order type is order.Limit
+	if c.TimeInForce != "" && c.OrderType == order.Limit {
+		pr["time_in_force"] = c.TimeInForce
+	}
+	if c.ExecInst != "" && c.OrderType == order.Limit {
+		pr["exec_inst"] = c.ExecInst
+	}
+	if c.ClientOrderID != "" {
+		pr["client_oid"] = c.ClientOrderID
 	}
 	return
 }

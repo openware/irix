@@ -220,9 +220,9 @@ type TradeResult struct {
 	TradeList []Trade `json:"trade_list"`
 }
 type WithdrawResponse struct {
-	Result WithdrawResult `json:"result"`
+	Result Withdraw `json:"result"`
 }
-type WithdrawResult struct {
+type Withdraw struct {
 	ID         int     `json:"id"`
 	Amount     float64 `json:"amount"`
 	Fee        float64 `json:"fee"`
@@ -230,6 +230,31 @@ type WithdrawResult struct {
 	Address    string  `json:"address"`
 	WithdrawID string  `json:"client_wid"`
 	CreateTime int64   `json:"create_time"`
+	UpdateTime int64   `json:"update_time,omitempty"`
+	Currency   string  `json:"currency,omitempty"`
+	Status     string  `json:"status,omitempty"`
+}
+type WithdrawHistoryResponse struct {
+	Result WithdrawHistoryResult `json:"result"`
+}
+type WithdrawHistoryResult struct {
+	WithdrawList []Withdraw `json:"withdraw_list"`
+}
+type Deposit struct {
+	Currency   string  `json:"currency"`
+	Fee        float64 `json:"fee"`
+	CreateTime int64   `json:"create_time"`
+	ID         string  `json:"id"`
+	UpdateTime int64   `json:"update_time"`
+	Amount     int     `json:"amount"`
+	Address    string  `json:"address"`
+	Status     string  `json:"status"`
+}
+type DepositHistoryResult struct {
+	DepositList []Deposit `json:"deposit_list"`
+}
+type DepositHistoryResponse struct {
+	Result DepositHistoryResult `json:"result"`
 }
 
 func generateNonce() int64 {

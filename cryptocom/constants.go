@@ -40,7 +40,10 @@ const (
 	privateSetCancelOnDisconnect = "private/set-cancel-on-disconnect"
 	privateGetCancelOnDisconnect = "private/get-cancel-on-disconnect"
 	subscribe                    = "subscribe"
-	unsubscribe                  = "subscribe"
+	unsubscribe                  = "unsubscribe"
+
+	// margin api
+	// derivative api
 	// ws endpoints
 	userEndpoint   = "user"
 	marketEndpoint = "market"

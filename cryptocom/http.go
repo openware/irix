@@ -39,12 +39,6 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 		if request.Nonce > 0 {
 			q.Add("nonce", fmt.Sprintf("%d", request.Nonce))
 		}
-		if request.ApiKey != "" {
-			q.Add("api_key", request.ApiKey)
-		}
-		if request.Signature != "" {
-			q.Add("sig", request.Signature)
-		}
 		for k, v := range request.Params {
 			q.Add(k, fmt.Sprintf("%v", v))
 		}
@@ -77,7 +71,9 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 		err = fmt.Errorf("error call at %s code: %d. reason: %s", request.Method, res.Code, res.Message)
 		return
 	}
-	err = json.Unmarshal(rawMsg, out)
+	if out != nil {
+		err = json.Unmarshal(rawMsg, out)
+	}
 	return
 }
 
