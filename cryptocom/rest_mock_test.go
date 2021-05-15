@@ -69,6 +69,11 @@ func mockTrades(tradeList ...Trade) TradeResult {
 		TradeList: tradeList,
 	}
 }
+func mockOrderHistory(tradeList ...OrderInfo) OrderHistoryResult {
+	return OrderHistoryResult{
+		OrderList: tradeList,
+	}
+}
 func mockOpenOrders(count int, orders ...OrderInfo) OpenOrdersResult {
 	return OpenOrdersResult{
 		Count:     count,

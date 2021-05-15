@@ -37,6 +37,26 @@ func (c *Client) RestGetTrades(reqID int, param *TradeParams) (res *TradeResult,
 	res = &response.Result
 	return
 }
+
+func (c *Client) RestGetOrderHistory(reqID int, param *TradeParams) (res *OrderHistoryResult, err error) {
+	var (
+		req *Request
+		response OrderHistoryResponse
+	)
+	if err = tryOrError(func() error {
+		req, err = c.privateGetOrderHistory(reqID, param)
+		return err
+	}, func() (err error) {
+		c.generateSignature(req)
+		_, err = c.rest.Send("POST", req, &response)
+		return
+	}); err != nil {
+		return
+	}
+	res = &response.Result
+	return
+}
+
 func (c *Client) RestOpenOrders(reqID int, param *OpenOrderParam) (res *OpenOrdersResult, err error) {
 	var (
 		req *Request
@@ -224,6 +244,24 @@ func (c *Client) RestCancelOrder(reqID int, market, orderID string) (res bool, e
 	)
 	err = tryOrError(func() (err error) {
 		req, err = c.cancelOrder(reqID, market, orderID)
+		return
+	}, func() (err error) {
+		c.generateSignature(req)
+		result, err := c.rest.Send("POST", req, nil)
+		if err == nil {
+			res = result.Code == 0
+		}
+		return
+	})
+	return
+}
+
+func (c *Client) RestCancelAllOrders(reqID int, market string) (res bool, err error) {
+	var (
+		req *Request
+	)
+	err = tryOrError(func() (err error) {
+		req, err = c.cancelAllOrder(reqID, market)
 		return
 	}, func() (err error) {
 		c.generateSignature(req)

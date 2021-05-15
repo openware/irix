@@ -205,10 +205,129 @@ func TestClient_RestCancelOrder(t *testing.T) {
 	}
 }
 func TestClient_RestCancelAllOrder(t *testing.T) {
-
+	t.Parallel()
+	type input struct {
+		market string
+	}
+	method := privateCancelAllOrders
+	testTable := []struct {
+		reqID                 int
+		param                 input
+		expectedParams        KVParams
+		body                  *mockBody
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{0, input{""}, nil, nil, true, false},
+		// valid values
+		{0, input{"BTC_USDT"}, KVParams{"instrument_name": "BTC_USDT"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, false, true},
+		{0, input{"BTC_USDT"}, KVParams{"instrument_name": "BTC_USDT"}, &mockBody{200, mockResponseBody(-1, method, 0, nil)}, false, false},
+	}
+	for _, c := range testTable {
+		cli, mockClient := setupHttpMock(c.body)
+		res, err := cli.RestCancelAllOrders(c.reqID, c.param.market)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.False(t, res)
+			mockClient.AssertNotCalled(t, "Do")
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.reqID > 0 {
+			assert.Equal(t, c.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.False(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.True(t, res, c)
+		}
+	}
 }
 func TestClient_RestGetOrderHistory(t *testing.T) {
-
+	t.Parallel()
+	method := privateGetOrderHistory
+	type input struct {
+		reqID int
+		body  *TradeParams
+	}
+	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
+	testTable := []struct {
+		in                    input
+		body                  *mockBody
+		expectedParams        KVParams
+		shouldValidationError bool
+		shouldError           bool
+	}{
+		{input{0, &TradeParams{Market: "BTC"}}, nil, nil, true, false},
+		{input{0, nil}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{}, false, true},
+		{input{0, &TradeParams{}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", StartTS: timeAgo[0]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "start_ts": timeAgo[0]}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", StartTS: timeAgo[1]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "start_ts": timeAgo[1]}, false, true},
+		{input{0, &TradeParams{Market: "BTC_USDT", EndTS: timeAgo[2]}}, &mockBody{400, mockResponseBody(0, method, 10004, nil)}, KVParams{"instrument_name": "BTC_USDT", "end_ts": timeAgo[2]}, false, true},
+		{input{1212, &TradeParams{Page: 20}}, &mockBody{200, mockResponseBody(1212, method, 0, mockOrderHistory())}, KVParams{"page": 20}, false, false},
+		{input{121212, &TradeParams{PageSize: 1}}, &mockBody{200, mockResponseBody(1212, method, 0, mockOrderHistory(OrderInfo{}))}, KVParams{"page_size": 1}, false, false},
+	}
+	for _, c := range testTable {
+		mockClient := &httpClientMock{}
+		if c.body != nil {
+			mockResponse := &http.Response{
+				StatusCode: c.body.code,
+				Body:       ioutil.NopCloser(bytes.NewReader(c.body.body)),
+			}
+			mockClient.On("Do", mock.Anything).Once().Return(mockResponse, nil)
+		}
+		cli := &Client{
+			key:    "something",
+			secret: "something",
+			rest: newHttpClient(mockClient,
+				fmt.Sprintf("https://%s/%s", sandboxHost, apiVersion),
+			)}
+		res, err := cli.RestGetOrderHistory(c.in.reqID, c.in.body)
+		if c.shouldValidationError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+			continue
+		}
+		mockClient.AssertExpectations(t)
+		req := mockClient.Calls[0].Arguments[0].(*http.Request)
+		b, _ := ioutil.ReadAll(req.Body)
+		var rq *Request
+		_ = json.Unmarshal(b, &rq)
+		if c.in.reqID > 0 {
+			assert.Equal(t, c.in.reqID, rq.Id)
+		}
+		b1, _ := json.Marshal(rq.Params)
+		b2, _ := json.Marshal(c.expectedParams)
+		assert.Equal(t, method, rq.Method)
+		assert.Equal(t, req.Method, "POST")
+		assert.Equal(t, string(b1), string(b2))
+		assert.NotEmpty(t, rq.Nonce)
+		assert.NotEmpty(t, rq.Signature)
+		assert.Equal(t, "something", rq.ApiKey)
+		assert.Contains(t, req.URL.String(), method)
+		if c.shouldError {
+			assert.NotNil(t, err)
+			assert.Nil(t, res)
+		} else {
+			assert.Nil(t, err, c)
+			assert.NotNil(t, res, c)
+		}
+	}
 }
 func TestClient_RestGetOpenOrders(t *testing.T) {
 	t.Parallel()

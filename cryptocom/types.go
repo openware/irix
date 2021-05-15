@@ -219,6 +219,12 @@ type TradeResponse struct {
 type TradeResult struct {
 	TradeList []Trade `json:"trade_list"`
 }
+type OrderHistoryResponse struct {
+	Result OrderHistoryResult `json:"result"`
+}
+type OrderHistoryResult struct {
+	OrderList []OrderInfo `json:"order_list"`
+}
 type WithdrawResponse struct {
 	Result Withdraw `json:"result"`
 }
