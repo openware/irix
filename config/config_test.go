@@ -18,7 +18,7 @@ import (
 	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/gocryptotrader/log"
 	"github.com/openware/gocryptotrader/ntpclient"
-	"github.com/openware/gocryptotrader/portfolio/banking"
+	"github.com/openware/irix/portfolio/banking"
 )
 
 const (

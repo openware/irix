@@ -9,8 +9,8 @@ import (
 	"github.com/openware/gocryptotrader/exchanges/protocol"
 	gctscript "github.com/openware/pkg/gctscript/vm"
 	"github.com/openware/pkg/log"
-	"github.com/openware/pkg/portfolio"
-	"github.com/openware/pkg/portfolio/banking"
+	"github.com/openware/irix/portfolio"
+	"github.com/openware/irix/portfolio/banking"
 )
 
 // Constants declared here are filename strings and test strings
