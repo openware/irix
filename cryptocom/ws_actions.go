@@ -116,8 +116,8 @@ func (c *Client) CreateMarketOrder(
 func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
 	r, _ := c.cancelOrder(
 		reqID,
-		remoteID,
 		market,
+		remoteID,
 	)
 	return c.sendPrivateRequest(r)
 }

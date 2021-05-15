@@ -446,7 +446,7 @@ func TestClient_CancelOrder(t *testing.T) {
 	}
 
 	for _, c := range testTable {
-		req, err := cl.cancelOrder(c.reqID, c.orderId, c.instrumentName)
+		req, err := cl.cancelOrder(c.reqID, c.instrumentName, c.orderId)
 		if c.shouldError {
 			assert.NotNil(t, err, c)
 			assert.Nil(t, req, c)
