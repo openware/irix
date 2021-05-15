@@ -25,7 +25,7 @@ import (
 	"github.com/openware/gocryptotrader/exchanges/asset"
 	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/gocryptotrader/log"
-	"github.com/openware/gocryptotrader/portfolio/banking"
+	"github.com/openware/irix/portfolio/banking"
 )
 
 // GetCurrencyConfig returns currency configurations
