@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openware/gocryptotrader/exchanges/protocol"
+	"github.com/openware/pkg/protocol"
 	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/irix/portfolio"
 	"github.com/openware/irix/portfolio/banking"
