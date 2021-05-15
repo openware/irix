@@ -14,10 +14,10 @@ import (
 	"github.com/openware/gocryptotrader/connchecker"
 	"github.com/openware/gocryptotrader/currency"
 	"github.com/openware/gocryptotrader/database"
-	"github.com/openware/gocryptotrader/exchanges/asset"
 	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/gocryptotrader/log"
 	"github.com/openware/gocryptotrader/ntpclient"
+	"github.com/openware/irix/exchanges/asset"
 	"github.com/openware/irix/portfolio/banking"
 )
 

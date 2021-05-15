@@ -24,7 +24,7 @@ const (
 	canManipulateRealOrders = false
 	currPair                = "USDT-BTC"
 	curr                    = "BTC"
-	withdrawFee = 0.00030
+	withdrawFee             = 0.00030
 )
 
 var b Bittrex

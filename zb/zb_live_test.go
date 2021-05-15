@@ -14,7 +14,6 @@ import (
 
 var mockTests = false
 
-
 func TestMain(m *testing.M) {
 	zbConfig, err := configTest()
 	if err != nil {

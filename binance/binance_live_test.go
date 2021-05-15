@@ -5,11 +5,12 @@
 package binance
 
 import (
-	"github.com/openware/irix/config"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/openware/irix/config"
 
 	"github.com/openware/irix/sharedtestvalues"
 )
