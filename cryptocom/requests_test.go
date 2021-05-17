@@ -407,13 +407,13 @@ func TestClient_CreateOrder(t *testing.T)  {
 			assert.Equal(t, c.in.Market, req.Params["instrument_name"])
 			assert.Equal(t, c.in.Side.String(), req.Params["side"])
 			assert.Equal(t, strings.ReplaceAll(c.in.OrderType.String(), " ", "-"), req.Params["type"])
-			assert.Equal(t, c.in.Quantity, req.Params["quantity"])
-			assert.Equal(t, c.in.Price, req.Params["price"])
+			assert.Equal(t, fmt.Sprintf("%v", c.in.Quantity), req.Params["quantity"])
+			assert.Equal(t, fmt.Sprintf("%v", c.in.Price), req.Params["price"])
 				if c.in.Notional > 0 {
-					assert.Equal(t, c.in.Notional, req.Params["notional"])
+					assert.Equal(t, fmt.Sprintf("%v", c.in.Notional), req.Params["notional"])
 				}
 				if c.in.TriggerPrice > 0 {
-					assert.Equal(t, c.in.TriggerPrice, req.Params["trigger_price"])
+					assert.Equal(t, fmt.Sprintf("%v", c.in.TriggerPrice), req.Params["trigger_price"])
 				}
 				// fully optional
 				if c.in.ClientOrderID != "" {

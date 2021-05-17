@@ -2,7 +2,9 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"github.com/openware/pkg/currency"
+	"github.com/openware/pkg/order"
 	"regexp"
 	"strconv"
 	"strings"
@@ -96,19 +98,21 @@ func (c *Client) createOrderLimitRequest(
 	price decimal.Decimal,
 	volume decimal.Decimal,
 	uuid uuid.UUID) *Request {
-	return &Request{
-		Id:     reqID,
-		Method: privateCreateOrder,
-		Params: KVParams{
-			"instrument_name": strings.ToUpper(ask) + "_" + strings.ToUpper(bid),
-			"side":            strings.ToUpper(orderSide),
-			"type":            "LIMIT",
-			"price":           price,
-			"quantity":        volume,
-			"client_oid":      uuid,
-		},
-		Nonce: generateNonce(),
+	side := order.Sell
+	if strings.ToUpper(orderSide) == "BUY" {
+		side = order.Buy
 	}
+	priceF, _ := price.Float64()
+	qtyF, _ := volume.Float64()
+	o, _ := c.createOrder(reqID, CreateOrderParam{
+		Market:        fmt.Sprintf("%s_%s", ask, bid),
+		Side:           side,
+		OrderType:     order.Limit,
+		Price:         priceF,
+		Quantity:      qtyF,
+		ClientOrderID: uuid.String(),
+	})
+	return o
 }
 
 func (c *Client) createOrderMarketRequest(

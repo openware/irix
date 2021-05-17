@@ -8,10 +8,45 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"sync"
 	"testing"
 )
 
 type testingFunc func(client *Client)
+type mockTransport struct {
+	mock.Mock
+}
+
+func (m *mockTransport) ReadMessage() (int, []byte, error) {
+	args := m.Called()
+	return args.Get(0).(int), args.Get(1).([]byte), args.Error(2)
+}
+
+func (m *mockTransport) WriteMessage(i int, i2 []byte) error {
+	return m.Called(i, i2).Error(0)
+}
+
+func (m *mockTransport) Close() error {
+	return m.Called().Error(0)
+}
+
+func mockWsClient() (cli *Client, public *mockTransport, private *mockTransport) {
+	cli = New("test", "test", "test", "test")
+	public = &mockTransport{}
+	private = &mockTransport{}
+	cli.publicConn = Connection{
+		IsPrivate: false,
+		Transport: public,
+		Mutex:     &sync.Mutex{},
+	}
+	cli.privateConn = Connection{
+		IsPrivate: true,
+		Transport: private,
+		Mutex:     &sync.Mutex{},
+	}
+	return
+}
 
 func TestFormat(t *testing.T) {
 	markets := []string{"ETH_BTC", "ETH_COV", "XRP_BTC"}
@@ -90,106 +125,6 @@ func testResponse(t *testing.T, expected string, isPrivate bool) {
 	assert.Equal(t, expectedResponse, resp)
 }
 
-func TestPublicOrderBook(t *testing.T) {
-	t.Run("Subscribe", func(t *testing.T) {
-		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["book.ETH_BTC.10"]}}`
-		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicOrderBook(10, "ETH_BTC") })
-	})
-
-	t.Run("Read response", func(t *testing.T) {
-		jsonExpected := `{
-      "method": "subscribe",
-      "result": {
-        "instrument_name": "ETH_CRO",
-        "subscription": "book.ETH_CRO.150",
-        "channel": "book",
-        "depth": 150,
-        "data": [
-          {
-            "bids": [
-              [
-                11746.488,
-                128,
-                8
-              ]
-            ],
-            "asks": [
-              [
-                11747.488,
-                201,
-                12
-              ]
-            ],
-            "t": 1587523078844
-          }
-        ]
-      }
-    }`
-		testResponse(t, jsonExpected, false)
-	})
-}
-
-func TestPublicTrades(t *testing.T) {
-	t.Run("Subscribe", func(t *testing.T) {
-		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["trade.ETH_BTC"]}}`
-		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicTrades("ETH_BTC") })
-	})
-
-	t.Run("Read response", func(t *testing.T) {
-		jsonExpected := `{
-      "method": "subscribe",
-      "result": {
-        "instrument_name": "ETH_CRO",
-        "subscription": "trade.ETH_CRO",
-        "channel": "trade",
-        "data": [
-          {
-            "p": 162.12,
-            "q": 11.085,
-            "s": "buy",
-            "d": 1210447366,
-            "t": 1587523078844,
-            "dataTime": 0
-          }
-        ]
-      }
-    }`
-		testResponse(t, jsonExpected, false)
-	})
-}
-
-func TestPublicTickers(t *testing.T) {
-	t.Run("Subscribe", func(t *testing.T) {
-		// prepare expected
-		expected := `{"id":1,"method":"subscribe","nonce":0,"params":{"channels":["ticker.ETH_BTC"]}}`
-		testSubscribe(t, expected, false, func(client *Client) { client.SubscribePublicTickers("ETH_BTC") })
-	})
-
-	t.Run("Read response", func(t *testing.T) {
-		jsonExpected := `{
-      "method": "subscribe",
-      "result": {
-        "instrument_name": "ETH_CRO",
-        "subscription": "ticker.ETH_CRO",
-        "channel": "ticker",
-        "data": [
-          {
-            "h": 1,
-            "v": 10232.26315789,
-            "a": 173.60263169,
-            "l": 0.01,
-            "b": 0.01,
-            "k": 1.12345680,
-            "c": -0.44564773,
-            "t": 1587523078844
-          }
-        ]
-      }
-    }`
-		testResponse(t, jsonExpected, false)
-	})
-}
 
 func TestSubscribePrivateOrders(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
@@ -299,13 +234,13 @@ func TestSubscribePrivateBalanceUpdates(t *testing.T) {
 func TestCreateLimitOrder(t *testing.T) {
 	t.Run("Subscribe BUY", func(t *testing.T) {
 		// prepare expected
-		uuid := uuid.New()
+		u := uuid.New()
 		price := decimal.NewFromFloat(0.01)
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
 			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
-			uuid, price.String(), volume.String(), "BUY",
+			u, price.String(), volume.String(), "BUY",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
 			client.CreateLimitOrder(
@@ -315,20 +250,20 @@ func TestCreateLimitOrder(t *testing.T) {
 				"buy",
 				price,
 				volume,
-				uuid,
+				u,
 			)
 		})
 	})
 
 	t.Run("Subscribe Sell", func(t *testing.T) {
 		// prepare expected
-		uuid := uuid.New()
+		u := uuid.New()
 		price := decimal.NewFromFloat(0.01)
 		volume := decimal.NewFromFloat(0.0001)
 
 		expected := fmt.Sprintf(
 			`{"id":1,"method":"private/create-order","nonce":0,"params":{"client_oid":"%s","instrument_name":"ETH_CRO","price":"%s","quantity":"%s","side":"%s","type":"LIMIT"}}`,
-			uuid, price.String(), volume.String(), "SELL",
+			u, price.String(), volume.String(), "SELL",
 		)
 		testSubscribe(t, expected, true, func(client *Client) {
 			client.CreateLimitOrder(
@@ -338,7 +273,7 @@ func TestCreateLimitOrder(t *testing.T) {
 				"sell",
 				price,
 				volume,
-				uuid,
+				u,
 			)
 		})
 	})

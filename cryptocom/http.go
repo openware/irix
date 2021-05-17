@@ -6,16 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type HttpTransport interface {
 	Send(httpMethod string, request *Request, out interface{}) (RawResponse, error)
-}
-
-type WsTransport interface {
-	ReadMessage(out interface{}) (RawResponse, error)
-	WriteMessage(request Request) error
-	Close() error
 }
 
 type HttpExecutor interface {
@@ -32,15 +27,15 @@ func (h *httpClient) Send(verb string, request *Request, out interface{}) (res R
 	case "GET":
 		req, _ = http.NewRequest(verb, fmt.Sprintf("%s/%s", h.root, request.Method), nil)
 		req.Header.Add("Content-Type", "application/json")
-		q := req.URL.Query()
+		q := url.Values{}
 		if request.Id > 0 {
-			q.Add("id", fmt.Sprint(request.Id))
+			q.Set("id", fmt.Sprint(request.Id))
 		}
 		if request.Nonce > 0 {
-			q.Add("nonce", fmt.Sprintf("%d", request.Nonce))
+			q.Set("nonce", fmt.Sprintf("%d", request.Nonce))
 		}
 		for k, v := range request.Params {
-			q.Add(k, fmt.Sprintf("%v", v))
+			q.Set(k, fmt.Sprintf("%v", v))
 		}
 		req.URL.RawQuery = q.Encode()
 		break

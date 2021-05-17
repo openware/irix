@@ -60,12 +60,10 @@ type Client struct {
 	secret        string
 	privateSubs   []string
 	publicSubs    []string
-	httpClient    HTTPClient
 	outbox        chan Response
 	LogFunc       LogFunc
 	wg            sync.WaitGroup
 	rest          HttpTransport
-	ws            WsTransport
 }
 
 // New returns a pointer of Client struct
@@ -78,7 +76,6 @@ func New(wsRootURL, restRootURL, key, secret string) *Client {
 		outbox:        make(chan Response),
 		privateSubs:   make([]string, 0),
 		publicSubs:    make([]string, 0),
-		httpClient:    &http.Client{},
 		LogFunc:       defaultLogFunc,
 		isTerminating: false,
 		rest: newHttpClient(&http.Client{}, restRootURL),
@@ -221,7 +218,7 @@ func (c *Client) generateSignature(r *Request) {
 		var val string
 		switch v.(type) {
 		case float64, float32:
-			val = fmt.Sprintf("%.12f", v)
+			val = fmt.Sprintf("%v", v)
 		default:
 			val = fmt.Sprintf("%v", v)
 		}

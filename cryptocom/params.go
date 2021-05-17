@@ -418,16 +418,16 @@ func (c CreateOrderParam) Encode() (pr KVParams, err error) {
 		"type": strings.ReplaceAll(c.OrderType.String(), " ", "-"),
 	}
 	if c.Price > 0 {
-		pr["price"] = c.Price
+		pr["price"] = fmt.Sprintf("%v", c.Price)
 	}
 	if c.Quantity > 0 {
-		pr["quantity"] = c.Quantity
+		pr["quantity"] = fmt.Sprintf("%v", c.Quantity)
 	}
 	if c.Notional > 0 {
-		pr["notional"] = c.Notional
+		pr["notional"] = fmt.Sprintf("%v", c.Notional)
 	}
 	if c.TriggerPrice > 0 {
-		pr["trigger_price"] = c.TriggerPrice
+		pr["trigger_price"] = fmt.Sprintf("%v", c.TriggerPrice)
 	}
 	// set params only if order type is order.Limit
 	if c.TimeInForce != "" && c.OrderType == order.Limit {

@@ -1,6 +1,7 @@
 package cryptocom
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -22,17 +23,37 @@ func format(markets []string, fn formater) []string {
 // SubscribePublicTrades is subscription trade channel
 // Example: SubscribeTrades("ETH_BTC", "ETH_CRO")
 func (c *Client) SubscribePublicTrades(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
 	channels := format(markets, func(s string) string {
 		return fmt.Sprintf("trade.%s", s)
 	})
 
 	return c.subscribePublicChannels(channels, true)
 }
+func (c *Client) validateMarkets(markets ...string) error {
+	if len(markets) == 0 {
+		return errors.New("set at least one market to subscribe")
+	}
+	for _, mrk := range markets {
+		if err := validInstrument(mrk); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // SubscribePublicOrderBook is subscription orderbook channel
 // Example: SubscribeOrderBook(depth, "ETH_BTC", "ETH_CRO")
 // depth: Number of bids and asks to return. Allowed values: 10 or 150
 func (c *Client) SubscribePublicOrderBook(depth int, markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
+	if depth < 10 || depth > 150 {
+		return errors.New("depth value is out of range. Allowed values are between 10 and/or 150")
+	}
 	channels := format(markets, func(s string) string {
 		return fmt.Sprintf("book.%s.%d", s, depth)
 	})
@@ -42,8 +63,25 @@ func (c *Client) SubscribePublicOrderBook(depth int, markets ...string) error {
 
 // SubscribePublicTickers is subscription ticker channel
 func (c *Client) SubscribePublicTickers(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
 	channels := format(markets, func(s string) string {
 		return fmt.Sprintf("ticker.%s", s)
+	})
+
+	return c.subscribePublicChannels(channels, true)
+}
+// SubscribeCandlestick is subscription to candlestick channel
+func (c *Client) SubscribeCandlestick(interval Interval, markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
+	if interval < Minute1 || interval > Month {
+		return errors.New("invalid interval value")
+	}
+	channels := format(markets, func(s string) string {
+		return fmt.Sprintf("candlestick.%s.%s", interval.Encode(), s)
 	})
 
 	return c.subscribePublicChannels(channels, true)
@@ -51,6 +89,9 @@ func (c *Client) SubscribePublicTickers(markets ...string) error {
 
 // SubscribePrivateOrders is subscription private order user.order.markets channel
 func (c *Client) SubscribePrivateOrders(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
 	channels := format(markets, func(s string) string {
 		return fmt.Sprintf("user.order.%s", s)
 	})
@@ -60,15 +101,47 @@ func (c *Client) SubscribePrivateOrders(markets ...string) error {
 
 // SubscribePrivateTrades is subscription private user.trade channel
 func (c *Client) SubscribePrivateTrades(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
 	channels := format(markets, func(s string) string {
 		return fmt.Sprintf("user.trade.%s", s)
 	})
 
 	return c.subscribePrivateChannels(channels, true)
 }
+// SubscribePrivateMarginOrders is subscription private order user.margin.order.markets channel
+func (c *Client) SubscribePrivateMarginOrders(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
+	channels := format(markets, func(s string) string {
+		return fmt.Sprintf("user.margin.order.%s", s)
+	})
 
+	return c.subscribePrivateChannels(channels, true)
+}
+
+// SubscribePrivateMarginTrades is subscription private user.margin.trade channel
+func (c *Client) SubscribePrivateMarginTrades(markets ...string) error {
+	if err := c.validateMarkets(markets...); err != nil {
+		return err
+	}
+	channels := format(markets, func(s string) string {
+		return fmt.Sprintf("user.margin.trade.%s", s)
+	})
+
+	return c.subscribePrivateChannels(channels, true)
+}
+
+// SubscribePrivateBalanceUpdates subscribe to user.balance channel
 func (c *Client) SubscribePrivateBalanceUpdates() error {
 	channels := []string{"user.balance"}
+	return c.subscribePrivateChannels(channels, true)
+}
+// SubscribePrivateMarginBalanceUpdates subscribe to user.margin.balance channel
+func (c *Client) SubscribePrivateMarginBalanceUpdates() error {
+	channels := []string{"user.margin.balance"}
 	return c.subscribePrivateChannels(channels, true)
 }
 
