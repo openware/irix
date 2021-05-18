@@ -25,7 +25,7 @@ func (c *Client) RestGetTrades(reqID int, param *TradeParams) (res *TradeResult,
 		response TradeResponse
 	)
 	if err = tryOrError(func() error {
-		req, err = c.privateGetTrades(reqID, param)
+		req, err = c.getPrivateTrades(reqID, param)
 		return err
 	}, func() error {
 		c.generateSignature(req)

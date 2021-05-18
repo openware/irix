@@ -10,7 +10,7 @@ import (
 )
 
 func TestPublicOrderBook(t *testing.T) {
-	testTable := []struct{
+	testCases := []struct{
 		depth int
 		instruments []string
 		validationError bool
@@ -24,7 +24,7 @@ func TestPublicOrderBook(t *testing.T) {
 		{10, []string{"BTC_USDT"}, false, true},
 		{150, []string{"BTC_USDT"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, public, private := mockWsClient()
 		if !c.validationError {
 			var err error
@@ -58,7 +58,7 @@ func TestPublicOrderBook(t *testing.T) {
 	}
 }
 func TestPublicTicker(t *testing.T) {
-	testTable := []struct{
+	testCases := []struct{
 		instruments []string
 		validationError bool
 		shouldError bool
@@ -69,7 +69,7 @@ func TestPublicTicker(t *testing.T) {
 		{[]string{"BTC_USDT", "ETCH"}, true, false},
 		{[]string{"BTC_USDT"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, public, private := mockWsClient()
 		if !c.validationError {
 			var err error
@@ -103,7 +103,7 @@ func TestPublicTicker(t *testing.T) {
 	}
 }
 func TestPublicTrade(t *testing.T) {
-	testTable := []struct{
+	testCases := []struct{
 		instruments []string
 		validationError bool
 		shouldError bool
@@ -114,7 +114,7 @@ func TestPublicTrade(t *testing.T) {
 		{[]string{"BTC_USDT", "ETCH"}, true, false},
 		{[]string{"BTC_USDT"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, public, private := mockWsClient()
 		if !c.validationError {
 			var err error
@@ -149,7 +149,7 @@ func TestPublicTrade(t *testing.T) {
 }
 
 func TestPublicCandlestick(t *testing.T) {
-	testTable := []struct{
+	testCases := []struct{
 		interval Interval
 		instruments []string
 		validationError bool
@@ -173,7 +173,7 @@ func TestPublicCandlestick(t *testing.T) {
 		{Week2, []string{"BTC_USDT"}, false, false},
 		{Month, []string{"BTC_USDT"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, public, private := mockWsClient()
 		if !c.validationError {
 			var err error

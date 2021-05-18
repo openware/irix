@@ -3,7 +3,6 @@ package cryptocom
 import (
 	"errors"
 	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -187,22 +186,161 @@ func (c *Client) CreateMarketOrder(
 }
 
 func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
-	r, _ := c.cancelOrder(
-		reqID,
-		market,
-		remoteID,
+	var (
+		req *Request
 	)
-	return c.sendPrivateRequest(r)
+	return tryOrError(func() (err error) {
+		req, err = c.cancelOrder(
+			reqID,
+			market,
+			remoteID,
+		)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
 }
 
 func (c *Client) CancelAllOrders(reqID int, market string) error {
-	r, _ := c.cancelAllOrder(reqID, market)
-	return c.sendPrivateRequest(r)
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.cancelAllOrder(reqID, market)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsGetOrderHistory(reqID int, in *TradeParams) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.privateGetOrderHistory(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsGetOpenOrders(reqID int, in *OpenOrderParam) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getOpenOrders(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
 }
 
 func (c *Client) GetOrderDetails(reqID int, remoteID string) error {
-	r, _ := c.getOrderDetail(reqID, remoteID)
-	return c.sendPrivateRequest(r)
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getOrderDetail(reqID, remoteID)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsGetTrades(reqID int, in *TradeParams) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getPrivateTrades(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+// WsGetInstruments Get markets/instruments via websocket
+func (c *Client) WsGetInstruments() error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req = c.getInstruments()
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsSetCancelOnDisconnect(scope string) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.setCancelOnDisconnect(scope)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsGetCancelOnDisconnect() error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getCancelOnDisconnect()
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+
+func (c *Client) WsCreateWithdrawal(reqID int, in WithdrawParams) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.createWithdrawal(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+func (c *Client) WsGetWithdrawalHistory(reqID int, in *WithdrawHistoryParam) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getWithdrawalHistory(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+func (c *Client) WsGetAccountSummary(market string) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.getAccountSummary(market)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
+}
+func (c *Client) WsCreateOrder(reqID int, in CreateOrderParam) error {
+	var (
+		req *Request
+	)
+	return tryOrError(func() (err error) {
+		req, err = c.createOrder(reqID, in)
+		return
+	}, func() error {
+		return c.sendPrivateRequest(req)
+	})
 }
 
 func (c *Client) respondHeartBeat(isPrivate bool, id int) {

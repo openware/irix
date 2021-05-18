@@ -106,7 +106,7 @@ func (c *Client) createOrderLimitRequest(
 	qtyF, _ := volume.Float64()
 	o, _ := c.createOrder(reqID, CreateOrderParam{
 		Market:        fmt.Sprintf("%s_%s", ask, bid),
-		Side:           side,
+		Side:          side,
 		OrderType:     order.Limit,
 		Price:         priceF,
 		Quantity:      qtyF,
@@ -213,7 +213,7 @@ func (c *Client) getOrderDetail(reqID int, remoteID string) (req *Request, err e
 	return
 }
 
-func (c *Client) privateGetTrades(reqID int, params *TradeParams) (*Request, error) {
+func (c *Client) getPrivateTrades(reqID int, params *TradeParams) (*Request, error) {
 	pr, err := params.Encode()
 	if err != nil {
 		return nil, err
@@ -274,10 +274,14 @@ func (c *Client) getOrderBook(reqID int, instrument string, depth int) (req *Req
 	if depth > 0 {
 		params["depth"] = strconv.Itoa(depth)
 	}
+	nonce := generateNonce()
+	if reqID == 0 {
+		reqID = int(nonce)
+	}
 	req = &Request{
 		Id:     reqID,
 		Method: publicGetBook,
-		Nonce:  generateNonce(),
+		Nonce:  nonce,
 		Params: params,
 	}
 	return
@@ -375,9 +379,9 @@ func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
 	}
 	nonce := generateNonce()
 	req = &Request{
-		Id: int(nonce),
+		Id:     int(nonce),
 		Method: privateSetCancelOnDisconnect,
-		Nonce: nonce,
+		Nonce:  nonce,
 		Params: KVParams{
 			"scope": scope,
 		},
@@ -388,14 +392,14 @@ func (c *Client) setCancelOnDisconnect(scope string) (req *Request, err error) {
 func (c *Client) getCancelOnDisconnect() (req *Request, err error) {
 	nonce := generateNonce()
 	req = &Request{
-		Id: int(nonce),
+		Id:     int(nonce),
 		Method: privateGetCancelOnDisconnect,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	return
 }
 
-func (c *Client) createOrder(reqID int, param CreateOrderParam) (req *Request, err error){
+func (c *Client) createOrder(reqID int, param CreateOrderParam) (req *Request, err error) {
 	params, err := param.Encode()
 	if err != nil {
 		return
@@ -405,10 +409,10 @@ func (c *Client) createOrder(reqID int, param CreateOrderParam) (req *Request, e
 		reqID = int(nonce)
 	}
 	req = &Request{
-		Id:        reqID,
-		Method:    privateCreateOrder,
-		Nonce:     nonce,
-		Params:    params,
+		Id:     reqID,
+		Method: privateCreateOrder,
+		Nonce:  nonce,
+		Params: params,
 	}
 	return
 }
@@ -423,10 +427,10 @@ func (c *Client) getOpenOrders(reqID int, param *OpenOrderParam) (req *Request, 
 		reqID = int(nonce)
 	}
 	req = &Request{
-		Id: reqID,
+		Id:     reqID,
 		Method: privateGetOpenOrders,
 		Params: pr,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	return
 }
@@ -440,10 +444,10 @@ func (c *Client) createWithdrawal(reqID int, params WithdrawParams) (req *Reques
 		reqID = int(nonce)
 	}
 	req = &Request{
-		Id: reqID,
+		Id:     reqID,
 		Method: privateCreateWithdrawal,
 		Params: pr,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	return
 }
@@ -457,10 +461,10 @@ func (c *Client) getWithdrawalHistory(reqID int, params *WithdrawHistoryParam) (
 		reqID = int(nonce)
 	}
 	req = &Request{
-		Id: reqID,
+		Id:     reqID,
 		Method: privateGetWithdrawalHistory,
 		Params: pr,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	return
 }
@@ -474,10 +478,10 @@ func (c *Client) getDepositHistory(reqID int, params *DepositHistoryParam) (req 
 		reqID = int(nonce)
 	}
 	req = &Request{
-		Id: reqID,
+		Id:     reqID,
 		Method: privateGetDepositHistory,
 		Params: pr,
-		Nonce: nonce,
+		Nonce:  nonce,
 	}
 	return
 }
