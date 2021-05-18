@@ -105,7 +105,7 @@ func (w WithdrawParams) Encode() (KVParams, error) {
 	}
 	pr := KVParams{
 		"currency": w.Currency,
-		"amount":   w.Amount,
+		"amount":   fmt.Sprintf("%v", w.Amount),
 		"address":  w.Address,
 	}
 	if w.WithdrawID != "" {

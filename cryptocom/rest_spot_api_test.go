@@ -95,7 +95,7 @@ func TestClient_PrivateGetAccountSummary(t *testing.T) {
 func TestClient_RestCreateOrder(t *testing.T) {
 	t.Parallel()
 	method := privateCreateOrder
-	testTable := []struct {
+	testCases := []struct {
 		reqID                 int
 		param                 CreateOrderParam
 		expectedParams        KVParams
@@ -114,7 +114,7 @@ func TestClient_RestCreateOrder(t *testing.T) {
 		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "STOP_LOSS", "price": "0.001", "quantity": "0.0001", "notional": "0.0001", "trigger_price": "0.001"}, &mockBody{200, mockResponseBody(-1, method, 0, Order{"121212121212", ""})}, false, false},
 		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, KVParams{"instrument_name": "BTC_USDT", "side": "BUY", "type": "STOP_LOSS", "price": "0.001", "quantity": "0.0001", "notional": "0.0001", "trigger_price": "0.001", "client_oid": "someorderid"}, &mockBody{200, mockResponseBody(-1, method, 0, Order{"121212121212", "someorderid"})}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestCreateOrder(c.reqID, c.param)
 		if c.shouldValidationError {
@@ -156,7 +156,7 @@ func TestClient_RestCancelOrder(t *testing.T) {
 		market, orderID string
 	}
 	method := privateCancelOrder
-	testTable := []struct {
+	testCases := []struct {
 		reqID                 int
 		param                 input
 		expectedParams        KVParams
@@ -170,7 +170,7 @@ func TestClient_RestCancelOrder(t *testing.T) {
 		{0, input{"BTC_USDT", "1212121212"}, KVParams{"instrument_name": "BTC_USDT", "order_id": "1212121212"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, false, true},
 		{0, input{"BTC_USDT", "1212121212"}, KVParams{"instrument_name": "BTC_USDT", "order_id": "1212121212"}, &mockBody{200, mockResponseBody(-1, method, 0, nil)}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestCancelOrder(c.reqID, c.param.market, c.param.orderID)
 		if c.shouldValidationError {
@@ -211,7 +211,7 @@ func TestClient_RestCancelAllOrder(t *testing.T) {
 		market string
 	}
 	method := privateCancelAllOrders
-	testTable := []struct {
+	testCases := []struct {
 		reqID                 int
 		param                 input
 		expectedParams        KVParams
@@ -224,7 +224,7 @@ func TestClient_RestCancelAllOrder(t *testing.T) {
 		{0, input{"BTC_USDT"}, KVParams{"instrument_name": "BTC_USDT"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, false, true},
 		{0, input{"BTC_USDT"}, KVParams{"instrument_name": "BTC_USDT"}, &mockBody{200, mockResponseBody(-1, method, 0, nil)}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestCancelAllOrders(c.reqID, c.param.market)
 		if c.shouldValidationError {
@@ -267,7 +267,7 @@ func TestClient_RestGetOrderHistory(t *testing.T) {
 		body  *TradeParams
 	}
 	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
-	testTable := []struct {
+	testCases := []struct {
 		in                    input
 		body                  *mockBody
 		expectedParams        KVParams
@@ -283,7 +283,7 @@ func TestClient_RestGetOrderHistory(t *testing.T) {
 		{input{1212, &TradeParams{Page: 20}}, &mockBody{200, mockResponseBody(1212, method, 0, mockOrderHistory())}, KVParams{"page": 20}, false, false},
 		{input{121212, &TradeParams{PageSize: 1}}, &mockBody{200, mockResponseBody(1212, method, 0, mockOrderHistory(OrderInfo{}))}, KVParams{"page_size": 1}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		mockClient := &httpClientMock{}
 		if c.body != nil {
 			mockResponse := &http.Response{
@@ -333,7 +333,7 @@ func TestClient_RestGetOrderHistory(t *testing.T) {
 func TestClient_RestGetOpenOrders(t *testing.T) {
 	t.Parallel()
 	method := privateGetOpenOrders
-	testTable := []struct {
+	testCases := []struct {
 		reqID                 int
 		param                 *OpenOrderParam
 		expectedParams        KVParams
@@ -352,7 +352,7 @@ func TestClient_RestGetOpenOrders(t *testing.T) {
 		{0, &OpenOrderParam{"BTC_USDT", 10, 0}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10}, &mockBody{200, mockResponseBody(-1, method, 0, mockOpenOrders(1, OrderInfo{InstrumentName: "BTC_USDT", Status: "ACTIVE"}))}, false, false},
 		{0, &OpenOrderParam{"BTC_USDT", 10, 1}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, &mockBody{200, mockResponseBody(-1, method, 0, mockOpenOrders(1, OrderInfo{InstrumentName: "BTC_USDT", Status: "ACTIVE"}))}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestOpenOrders(c.reqID, c.param)
 		if c.shouldValidationError {
@@ -394,7 +394,7 @@ func TestClient_RestGetOrderDetails(t *testing.T) {
 		reqID    int
 		remoteID string
 	}
-	testTable := []struct {
+	testCases := []struct {
 		in                    input
 		body                  *mockBody
 		expectedBody          KVParams
@@ -405,7 +405,7 @@ func TestClient_RestGetOrderDetails(t *testing.T) {
 		{input{0, "1212121212"}, &mockBody{400, mockResponseBody(-1, method, 10004, nil)}, KVParams{"order_id": "1212121212"}, false, true},
 		{input{1213, "1212121212"}, &mockBody{200, mockResponseBody(1213, method, 0, mockOrderDetail(OrderInfo{}, Trade{}))}, KVParams{"order_id": "1212121212"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		mockClient := &httpClientMock{}
 		if c.body != nil {
 			mockResponse := &http.Response{
@@ -459,7 +459,7 @@ func TestClient_RestGetTrades(t *testing.T) {
 		body  *TradeParams
 	}
 	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
-	testTable := []struct {
+	testCases := []struct {
 		in                    input
 		body                  *mockBody
 		expectedParams        KVParams
@@ -475,7 +475,7 @@ func TestClient_RestGetTrades(t *testing.T) {
 		{input{1212, &TradeParams{Page: 20}}, &mockBody{200, mockResponseBody(1212, method, 0, mockTrades())}, KVParams{"page": 20}, false, false},
 		{input{121212, &TradeParams{PageSize: 1}}, &mockBody{200, mockResponseBody(1212, method, 0, mockTrades())}, KVParams{"page_size": 1}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		mockClient := &httpClientMock{}
 		if c.body != nil {
 			mockResponse := &http.Response{

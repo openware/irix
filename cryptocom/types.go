@@ -284,14 +284,19 @@ func (r *Request) Encode() ([]byte, error) {
 		})
 	}
 	if strings.Contains(r.Method, "private/") {
-		return json.Marshal(map[string]interface{}{
+		enc := map[string]interface{}{
 			"id":      r.Id,
 			"method":  r.Method,
-			"params":  r.Params,
-			"api_key": r.ApiKey,
-			"sig":     r.Signature,
 			"nonce":   r.Nonce,
-		})
+		}
+		if r.Params != nil {
+			enc["params"] = r.Params
+		}
+		if r.Signature != "" {
+			enc["sig"] = r.Signature
+			enc["api_key"] = r.ApiKey
+		}
+		return json.Marshal(enc)
 	}
 	return json.Marshal(map[string]interface{}{
 		"id":     r.Id,

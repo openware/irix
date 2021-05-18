@@ -112,6 +112,7 @@ func TestClient_RestGetOrderbook(t *testing.T) {
 		}
 	}
 }
+
 func TestClient_RestGetCandlestick(t *testing.T) {
 	method := publicGetCandlestick
 
@@ -332,7 +333,7 @@ func TestClient_GetPublicTrades(t *testing.T) {
 
 func TestClient_RestCreateWithdrawal(t *testing.T)  {
 	method := privateCreateWithdrawal
-	testTable := []struct{
+	testCases := []struct{
 		reqID int
 		in WithdrawParams
 		body *mockBody
@@ -342,11 +343,11 @@ func TestClient_RestCreateWithdrawal(t *testing.T)  {
 	}{
 		{0, WithdrawParams{}, nil, nil, true, false},
 		{0, WithdrawParams{Currency: "BTC_USDT"}, nil, nil, true, false},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress}, false, true},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid"}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid"}, false, true},
-		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid", AddressTag: "XRP"}, &mockBody{200, mockResponseBody(-1, method, 0, Withdraw{})}, KVParams{"currency": "BTC", "amount": 0.1, "address": faker.BitcoinTestAddress, "client_wid": "withdrawid", "address_tag": "XRP"}, false, false},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": "0.1", "address": faker.BitcoinTestAddress}, false, true},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid"}, &mockBody{400, mockResponseBody(-1, method, 10004, Withdraw{})}, KVParams{"currency": "BTC", "amount": "0.1", "address": faker.BitcoinTestAddress, "client_wid": "withdrawid"}, false, true},
+		{0, WithdrawParams{Currency: "BTC", Amount: 0.1, Address: faker.BitcoinTestAddress, WithdrawID: "withdrawid", AddressTag: "XRP"}, &mockBody{200, mockResponseBody(-1, method, 0, Withdraw{})}, KVParams{"currency": "BTC", "amount": "0.1", "address": faker.BitcoinTestAddress, "client_wid": "withdrawid", "address_tag": "XRP"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestCreateWithdrawal(c.reqID, c.in)
 		if c.shouldValidationError {
@@ -384,7 +385,7 @@ func TestClient_RestCreateWithdrawal(t *testing.T)  {
 func TestClient_RestGetWithdrawalHistory(t *testing.T)  {
 	method := privateGetWithdrawalHistory
 	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
-	testTable := []struct{
+	testCases := []struct{
 		reqID int
 		in *WithdrawHistoryParam
 		body *mockBody
@@ -401,7 +402,7 @@ func TestClient_RestGetWithdrawalHistory(t *testing.T)  {
 		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1}, &mockBody{500, mockResponseBody(-1, method, 10004, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1}, false, true},
 		{0, &WithdrawHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1, Status: WithdrawCancelled}, &mockBody{200, mockResponseBody(-1, method, 0, mockWithdrawHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1, "status": "6"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestGetWithdrawalHistory(c.reqID, c.in)
 		if c.shouldValidationError {
@@ -510,7 +511,7 @@ func TestClient_GetDepositAddress(t *testing.T) {
 func TestClient_RestGetDepositHistory(t *testing.T)  {
 	method := privateGetDepositHistory
 	timeAgo := []int64{timestampMs(time.Now().Add(time.Hour * -24)), timestampMs(time.Now().Add(time.Second * -5)), timestampMs(time.Now().Add(time.Hour * -23))}
-	testTable := []struct{
+	testCases := []struct{
 		reqID int
 		in *DepositHistoryParam
 		body *mockBody
@@ -527,7 +528,7 @@ func TestClient_RestGetDepositHistory(t *testing.T)  {
 		{0, &DepositHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1}, &mockBody{500, mockResponseBody(-1, method, 10004, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1}, false, true},
 		{0, &DepositHistoryParam{Currency: "BTC", EndTS: timeAgo[1], StartTS: timeAgo[0], PageSize: 10, Page: 1, Status: DepositFailed}, &mockBody{200, mockResponseBody(-1, method, 0, mockDepositHistory())}, KVParams{"currency": "BTC", "start_ts": timeAgo[0], "end_ts": timeAgo[1], "page_size": 10, "page": 1, "status": "2"}, false, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		cli, mockClient := setupHttpMock(c.body)
 		res, err := cli.RestGetDepositHistory(c.reqID, c.in)
 		if c.shouldValidationError {

@@ -111,7 +111,7 @@ func TestRequest_GetCandlestick(t *testing.T)  {
 }
 
 func TestGetTicker(t *testing.T)  {
-	testTable := []struct{
+	testCases := []struct{
 		instrumentName string
 		shouldError bool
 	}{
@@ -124,7 +124,7 @@ func TestGetTicker(t *testing.T)  {
 		{"BTC_USDT", false},
 		{"BTC_USDT", false},
 	}
-	for _, arg := range testTable {
+	for _, arg := range testCases {
 		r, err := cl.getTicker(arg.instrumentName)
 		if arg.shouldError {
 			assert.NotNil(t, err, arg)
@@ -142,7 +142,7 @@ func TestGetTicker(t *testing.T)  {
 }
 
 func TestGetTrades(t *testing.T)  {
-	testTable := []struct{
+	testCases := []struct{
 		instrumentName string
 		shouldError bool
 	}{
@@ -155,7 +155,7 @@ func TestGetTrades(t *testing.T)  {
 		{"BTC_USDT", false},
 		{"BTC_USDT", false},
 	}
-	for _, arg := range testTable {
+	for _, arg := range testCases {
 		r, err := cl.getPublicTrades(arg.instrumentName)
 		if arg.shouldError {
 			assert.NotNil(t, err, arg)
@@ -174,7 +174,7 @@ func TestGetTrades(t *testing.T)  {
 
 func TestGetAccountSummary(t *testing.T)  {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		instrumentName string
 		shouldError bool
 	}{
@@ -187,7 +187,7 @@ func TestGetAccountSummary(t *testing.T)  {
 		{"BTC", false},
 		{"USDT", false},
 	}
-	for _, arg := range testTable {
+	for _, arg := range testCases {
 		r, err := cl.getAccountSummary(arg.instrumentName)
 		if arg.shouldError {
 			assert.NotNil(t, err, arg)
@@ -204,7 +204,7 @@ func TestGetAccountSummary(t *testing.T)  {
 	}
 }
 func TestGetDepositAddress(t *testing.T)  {
-	testTable := []struct{
+	testCases := []struct{
 		instrumentName string
 		shouldError bool
 	}{
@@ -217,7 +217,7 @@ func TestGetDepositAddress(t *testing.T)  {
 		{"BTC", false},
 		{"USDT", false},
 	}
-	for _, arg := range testTable {
+	for _, arg := range testCases {
 		r, err := cl.getDepositAddress(arg.instrumentName)
 		if arg.shouldError {
 			assert.NotNil(t, err, arg)
@@ -236,7 +236,7 @@ func TestGetDepositAddress(t *testing.T)  {
 
 func TestRespondHeartbeat(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		id int
 		shouldError bool
 	}{
@@ -245,7 +245,7 @@ func TestRespondHeartbeat(t *testing.T) {
 		{1, false},
 		{int(time.Now().UnixNano()/int64(time.Millisecond)), false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		res, err := cl.heartbeat(c.id)
 		if c.shouldError {
 			assert.NotNil(t, err)
@@ -260,7 +260,7 @@ func TestRespondHeartbeat(t *testing.T) {
 }
 func TestSetCancelOnDisconnect(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		scope string
 		shouldError bool
 	}{
@@ -271,7 +271,7 @@ func TestSetCancelOnDisconnect(t *testing.T) {
 		{ScopeAccount, false},
 		{ScopeConnection, false},
 	}
-	for _, arg := range testTable {
+	for _, arg := range testCases {
 		r, err := cl.setCancelOnDisconnect(arg.scope)
 		if arg.shouldError {
 			assert.NotNil(t, err, arg)
@@ -292,7 +292,7 @@ func TestGetCancelOnDisconnect(t *testing.T) {
 }
 func TestSubscribeChannel(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		channel []string
 		shouldError bool
 	}{
@@ -307,7 +307,7 @@ func TestSubscribeChannel(t *testing.T) {
 		{[]string{"book.ETC_USDT.10", "trade.ETC_USDT"}, false},
 		{[]string{"candlestick.1d.ETC_USDT"}, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.subscribe(c.channel)
 		if c.shouldError {
 			assert.Nil(t, req)
@@ -322,7 +322,7 @@ func TestSubscribeChannel(t *testing.T) {
 }
 func TestUnsubscribeChannel(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		channel []string
 		shouldError bool
 	}{
@@ -337,7 +337,7 @@ func TestUnsubscribeChannel(t *testing.T) {
 		{[]string{"book.ETC_USDT.10", "trade.ETC_USDT"}, false},
 		{[]string{"candlestick.1d.ETC_USDT"}, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.unsubscribe(c.channel)
 		if c.shouldError {
 			assert.Nil(t, req, c)
@@ -353,7 +353,7 @@ func TestUnsubscribeChannel(t *testing.T) {
 
 func TestClient_CreateOrder(t *testing.T)  {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		reqID int
 		in CreateOrderParam
 		shouldError bool
@@ -395,7 +395,7 @@ func TestClient_CreateOrder(t *testing.T)  {
 		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001}, false},
 		{0, CreateOrderParam{Market: "BTC_USDT", Side: order.Buy, OrderType: StopLoss, Price: 0.001, Quantity: 0.0001, Notional: 0.0001, TriggerPrice: 0.001, ClientOrderID: "someorderid"}, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.createOrder(c.reqID, c.in)
 		if c.shouldError {
 			assert.NotNil(t, err, c)
@@ -430,7 +430,7 @@ func TestClient_CreateOrder(t *testing.T)  {
 }
 func TestClient_CancelOrder(t *testing.T) {
 	t.Parallel()
-	testTable := []struct {
+	testCases := []struct {
 		instrumentName string
 		orderId string
 		reqID int
@@ -445,7 +445,7 @@ func TestClient_CancelOrder(t *testing.T) {
 		{"BTC_USDT", fmt.Sprintf("%d", time.Now().Unix()), 1234, false},
 	}
 
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.cancelOrder(c.reqID, c.instrumentName, c.orderId)
 		if c.shouldError {
 			assert.NotNil(t, err, c)
@@ -467,7 +467,7 @@ func TestClient_CancelOrder(t *testing.T) {
 
 func TestClient_CancelAllOrders(t *testing.T) {
 	t.Parallel()
-	testTable := []struct {
+	testCases := []struct {
 		instrumentName string
 		reqID int
 		shouldError bool
@@ -480,7 +480,7 @@ func TestClient_CancelAllOrders(t *testing.T) {
 		{"BTC_USDT",  1234, false},
 	}
 
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.cancelAllOrder(c.reqID, c.instrumentName)
 		if c.shouldError {
 			assert.NotNil(t, err, c)
@@ -501,7 +501,7 @@ func TestClient_CancelAllOrders(t *testing.T) {
 
 func TestClient_GetOrderDetail(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		orderId string
 		reqID int
 		shouldError bool
@@ -512,7 +512,7 @@ func TestClient_GetOrderDetail(t *testing.T) {
 		{"123234242", 0, false},
 		{"123234242", 1212, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.getOrderDetail(c.reqID, c.orderId)
 		if c.shouldError {
 			assert.Nil(t, req, c)
@@ -531,7 +531,7 @@ func TestClient_GetOrderDetail(t *testing.T) {
 
 func TestClient_GetOpenOrders(t *testing.T) {
 	t.Parallel()
-	testTable := []struct{
+	testCases := []struct{
 		reqID int
 		param *OpenOrderParam
 		expectedParams KVParams
@@ -548,7 +548,7 @@ func TestClient_GetOpenOrders(t *testing.T) {
 		{0, &OpenOrderParam{"BTC_USDT", 10, 0}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10}, false},
 		{0, &OpenOrderParam{"BTC_USDT", 10, 1}, KVParams{"instrument_name": "BTC_USDT", "page_size": 10, "page": 1}, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.getOpenOrders(c.reqID, c.param)
 		if c.shouldError {
 			assert.Nil(t, req, c)
@@ -564,7 +564,7 @@ func TestClient_GetOpenOrders(t *testing.T) {
 
 func TestClient_PrivateGetTrades(t *testing.T) {
 	t.Parallel()
-	testTable := []struct {
+	testCases := []struct {
 		id int
 		arg *TradeParams
 		shouldError bool
@@ -588,8 +588,8 @@ func TestClient_PrivateGetTrades(t *testing.T) {
 		{0, &TradeParams{Page: 20}, false},
 		{0, &TradeParams{PageSize: 1}, false},
 	}
-	for _, c := range testTable {
-		req, err := cl.privateGetTrades(c.id, c.arg)
+	for _, c := range testCases {
+		req, err := cl.getPrivateTrades(c.id, c.arg)
 		if c.shouldError {
 			assert.NotNil(t, err)
 			assert.Nil(t, req)
@@ -609,7 +609,7 @@ func TestClient_PrivateGetTrades(t *testing.T) {
 }
 func TestClient_PrivateGetOrderHistory(t *testing.T) {
 	t.Parallel()
-	testTable := []struct {
+	testCases := []struct {
 		id int
 		arg *TradeParams
 		shouldError bool
@@ -633,7 +633,7 @@ func TestClient_PrivateGetOrderHistory(t *testing.T) {
 		{0, &TradeParams{Page: 20}, false},
 		{0, &TradeParams{PageSize: 1}, false},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.privateGetOrderHistory(c.id, c.arg)
 		if c.shouldError {
 			assert.NotNil(t, err)
@@ -655,7 +655,7 @@ func TestClient_PrivateGetOrderHistory(t *testing.T) {
 
 func TestClient_CreateWithdrawal(t *testing.T)  {
 	t.Parallel()
-	testTable := []struct {
+	testCases := []struct {
 		id int
 		arg WithdrawParams
 		shouldError bool
@@ -682,7 +682,7 @@ func TestClient_CreateWithdrawal(t *testing.T)  {
 			false,
 		},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.createWithdrawal(c.id, c.arg)
 		if c.shouldError {
 			assert.Nil(t, req, c)
@@ -700,7 +700,7 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 	t.Parallel()
 	days7ago := timestampMs(time.Now().Add(time.Hour * 24 * -7))
 	now := timestampMs(time.Now())
-	testTable := []struct {
+	testCases := []struct {
 		id int
 		arg *WithdrawHistoryParam
 		expectedParams KVParams
@@ -766,7 +766,7 @@ func TestClient_GetWithdrawalHistory(t *testing.T)  {
 			false,
 		},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.getWithdrawalHistory(c.id, c.arg)
 		if c.shouldError {
 			assert.Nil(t, req, c.arg)
@@ -788,7 +788,7 @@ func TestClient_getDepositHistory(t *testing.T)  {
 	t.Parallel()
 	days7ago := timestampMs(time.Now().Add(time.Hour * 24 * -7))
 	now := timestampMs(time.Now())
-	testTable := []struct {
+	testCases := []struct {
 		id int
 		arg *DepositHistoryParam
 		expectedParams KVParams
@@ -854,7 +854,7 @@ func TestClient_getDepositHistory(t *testing.T)  {
 			false,
 		},
 	}
-	for _, c := range testTable {
+	for _, c := range testCases {
 		req, err := cl.getDepositHistory(c.id, c.arg)
 		if c.shouldError {
 			assert.Nil(t, req, c.arg)
