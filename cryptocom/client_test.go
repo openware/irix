@@ -43,22 +43,6 @@ func (cm *connectionMock) Close() error {
 	return nil
 }
 
-func TestConnectionWrite(t *testing.T) {
-	client := New("test", "test", "test", "test")
-	// publicBuffer := bytes.NewBuffer(nil)
-	privateBuffer := bytes.NewBuffer(nil)
-
-	t.Run("auth", func(t *testing.T) {
-		client.privateConn = Connection{Transport: &connectionMock{Buffer: privateBuffer}, Mutex: &sync.Mutex{}}
-
-		req := client.authRequest()
-		client.sendPrivateRequest(req)
-
-		expected := fmt.Sprintf("{\"api_key\":\"test\",\"id\":%d,\"method\":\"public/auth\",\"nonce\":%v,\"sig\":\"%v\"}", req.Id, req.Nonce, req.Signature)
-		assert.Equal(t, expected, privateBuffer.String())
-	})
-}
-
 func TestConnectionRead(t *testing.T) {
 	// prepare mock
 	client := Default("test", "test", true)
