@@ -185,7 +185,7 @@ func (c *Client) CreateMarketOrder(
 	return c.sendPrivateRequest(r)
 }
 
-func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
+func (c *Client) WsCancelOrder(reqID int, remoteID, market string) error {
 	var (
 		req *Request
 	)
@@ -201,7 +201,7 @@ func (c *Client) CancelOrder(reqID int, remoteID, market string) error {
 	})
 }
 
-func (c *Client) CancelAllOrders(reqID int, market string) error {
+func (c *Client) WsCancelAllOrders(reqID int, market string) error {
 	var (
 		req *Request
 	)
@@ -237,7 +237,7 @@ func (c *Client) WsGetOpenOrders(reqID int, in *OpenOrderParam) error {
 	})
 }
 
-func (c *Client) GetOrderDetails(reqID int, remoteID string) error {
+func (c *Client) WsGetOrderDetails(reqID int, remoteID string) error {
 	var (
 		req *Request
 	)
