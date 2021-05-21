@@ -600,7 +600,7 @@ func TestWsCancelOrder(t *testing.T) {
 				On("WriteMessage", mock.Anything, mock.Anything).
 				Return(err)
 		}
-		err := cli.CancelOrder(c.reqID, c.param.orderID, c.param.market)
+		err := cli.WsCancelOrder(c.reqID, c.param.orderID, c.param.market)
 		var pr Request
 		if c.shouldValidationError {
 			assert.NotNil(t, err)
@@ -655,7 +655,7 @@ func TestWsCancelAllOrder(t *testing.T) {
 				On("WriteMessage", mock.Anything, mock.Anything).
 				Return(err)
 		}
-		err := cli.CancelAllOrders(c.reqID, c.param.market)
+		err := cli.WsCancelAllOrders(c.reqID, c.param.market)
 		var pr Request
 		if c.shouldValidationError {
 			assert.NotNil(t, err)
@@ -830,7 +830,7 @@ func TestWsGetOrderDetail(t *testing.T) {
 				On("WriteMessage", mock.Anything, mock.Anything).
 				Return(err)
 		}
-		err := cli.GetOrderDetails(c.in.reqID, c.in.remoteID)
+		err := cli.WsGetOrderDetails(c.in.reqID, c.in.remoteID)
 		var pr Request
 		if c.shouldValidationError {
 			assert.NotNil(t, err)

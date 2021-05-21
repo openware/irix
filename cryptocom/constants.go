@@ -4,6 +4,7 @@ import "github.com/openware/pkg/order"
 
 // basic configuration
 const (
+	exchangeName	  = "crypto.com"
 	host              = "api.crypto.com"
 	streamHost        = "stream.crypto.com"
 	sandboxHost       = "uat-api.3ona.co"
