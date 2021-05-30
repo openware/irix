@@ -15,17 +15,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openware/irix/portfolio/banking"
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
 	"github.com/openware/pkg/common/file"
 	"github.com/openware/pkg/connchecker"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/currency/forexprovider"
-	"github.com/openware/gocryptotrader/database"
-	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/pkg/log"
-	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/portfolio/banking"
 )
 
 // GetCurrencyConfig returns currency configurations
@@ -1289,67 +1287,6 @@ func (c *Config) CheckLoggerConfig() error {
 	return nil
 }
 
-func (c *Config) checkGCTScriptConfig() error {
-	m.Lock()
-	defer m.Unlock()
-
-	if c.GCTScript.ScriptTimeout <= 0 {
-		c.GCTScript.ScriptTimeout = gctscript.DefaultTimeoutValue
-	}
-
-	if c.GCTScript.MaxVirtualMachines == 0 {
-		c.GCTScript.MaxVirtualMachines = gctscript.DefaultMaxVirtualMachines
-	}
-
-	scriptPath := c.GetDataPath("scripts")
-	err := common.CreateDir(scriptPath)
-	if err != nil {
-		return err
-	}
-
-	outputPath := filepath.Join(scriptPath, "output")
-	err = common.CreateDir(outputPath)
-	if err != nil {
-		return err
-	}
-
-	gctscript.ScriptPath = scriptPath
-
-	return nil
-}
-
-func (c *Config) checkDatabaseConfig() error {
-	m.Lock()
-	defer m.Unlock()
-
-	if (c.Database == database.Config{}) {
-		c.Database.Driver = database.DBSQLite3
-		c.Database.Database = database.DefaultSQLiteDatabase
-	}
-
-	if !c.Database.Enabled {
-		return nil
-	}
-
-	if !common.StringDataCompare(database.SupportedDrivers, c.Database.Driver) {
-		c.Database.Enabled = false
-		return fmt.Errorf("unsupported database driver %v, database disabled", c.Database.Driver)
-	}
-
-	if c.Database.Driver == database.DBSQLite || c.Database.Driver == database.DBSQLite3 {
-		databaseDir := c.GetDataPath("database")
-		err := common.CreateDir(databaseDir)
-		if err != nil {
-			return err
-		}
-		database.DB.DataPath = databaseDir
-	}
-
-	database.DB.Config = &c.Database
-
-	return nil
-}
-
 // CheckNTPConfig checks for missing or incorrectly configured NTPClient and recreates with known safe defaults
 func (c *Config) CheckNTPConfig() {
 	m.Lock()
@@ -1736,23 +1673,9 @@ func (c *Config) CheckConfig() error {
 			err)
 	}
 
-	err = c.checkDatabaseConfig()
-	if err != nil {
-		log.Errorf(log.DatabaseMgr,
-			"Failed to configure database: %v",
-			err)
-	}
-
 	err = c.CheckExchangeConfigValues()
 	if err != nil {
 		return fmt.Errorf(ErrCheckingConfigValues, err)
-	}
-
-	err = c.checkGCTScriptConfig()
-	if err != nil {
-		log.Errorf(log.Global,
-			"Failed to configure gctscript, feature has been disabled: %s\n",
-			err)
 	}
 
 	c.CheckConnectionMonitorConfig()

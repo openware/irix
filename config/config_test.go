@@ -8,17 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/openware/irix/portfolio/banking"
+	"github.com/openware/pkg/asset"
 	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/common/convert"
 	"github.com/openware/pkg/common/file"
 	"github.com/openware/pkg/connchecker"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/gocryptotrader/database"
-	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/ntpclient"
-	"github.com/openware/pkg/asset"
-	"github.com/openware/irix/portfolio/banking"
 )
 
 const (
@@ -1904,50 +1902,6 @@ func TestDisableNTPCheck(t *testing.T) {
 	_, err = c.DisableNTPCheck(strings.NewReader(" "))
 	if err.Error() != "EOF" {
 		t.Errorf("failed expected EOF got: %v", err)
-	}
-}
-
-func TestCheckGCTScriptConfig(t *testing.T) {
-	t.Parallel()
-
-	var c Config
-	if err := c.checkGCTScriptConfig(); err != nil {
-		t.Error(err)
-	}
-
-	if c.GCTScript.ScriptTimeout != gctscript.DefaultTimeoutValue {
-		t.Fatal("unexpected value return")
-	}
-
-	if c.GCTScript.MaxVirtualMachines != gctscript.DefaultMaxVirtualMachines {
-		t.Fatal("unexpected value return")
-	}
-}
-
-func TestCheckDatabaseConfig(t *testing.T) {
-	t.Parallel()
-
-	var c Config
-	if err := c.checkDatabaseConfig(); err != nil {
-		t.Error(err)
-	}
-
-	if c.Database.Driver != database.DBSQLite3 ||
-		c.Database.Database != database.DefaultSQLiteDatabase ||
-		c.Database.Enabled {
-		t.Error("unexpected results")
-	}
-
-	c.Database.Enabled = true
-	c.Database.Driver = "mssqlisthebest"
-	if err := c.checkDatabaseConfig(); err == nil {
-		t.Error("unexpected result")
-	}
-
-	c.Database.Driver = database.DBSQLite3
-	c.Database.Enabled = true
-	if err := c.checkDatabaseConfig(); err != nil {
-		t.Error(err)
 	}
 }
 

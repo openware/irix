@@ -4,12 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openware/irix/protocol"
-	gctscript "github.com/openware/gocryptotrader/gctscript/vm"
 	"github.com/openware/irix/portfolio"
 	"github.com/openware/irix/portfolio/banking"
+	"github.com/openware/irix/protocol"
 	"github.com/openware/pkg/currency"
-	"github.com/openware/gocryptotrader/database"
 	"github.com/openware/pkg/log"
 )
 
@@ -79,12 +77,10 @@ type Config struct {
 	DataDirectory     string                  `json:"dataDirectory"`
 	EncryptConfig     int                     `json:"encryptConfig"`
 	GlobalHTTPTimeout time.Duration           `json:"globalHTTPTimeout"`
-	Database          database.Config         `json:"database"`
 	Logging           log.Config              `json:"logging"`
 	ConnectionMonitor ConnectionMonitorConfig `json:"connectionMonitor"`
 	Profiler          Profiler                `json:"profiler"`
 	NTPClient         NTPClientConfig         `json:"ntpclient"`
-	GCTScript         gctscript.Config        `json:"gctscript"`
 	Currency          CurrencyConfig          `json:"currencyConfig"`
 	Communications    CommunicationsConfig    `json:"communications"`
 	RemoteControl     RemoteControlConfig     `json:"remoteControl"`
