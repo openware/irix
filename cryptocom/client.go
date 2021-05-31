@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	exchange "github.com/openware/irix"
 	"io"
 	"log"
 	"net/http"
@@ -51,6 +52,7 @@ type Connection struct {
 }
 
 type Client struct {
+	exchange.Base
 	publicConn    Connection
 	privateConn   Connection
 	isTerminating bool
@@ -236,9 +238,9 @@ func (c *Client) generateSignature(r *Request) {
 	r.Signature = sha
 }
 
-func (c *Client) authenticate() {
+func (c *Client) authenticate() error {
 	r := c.authRequest()
-	c.sendPrivateRequest(r)
+	return c.sendPrivateRequest(r)
 }
 
 func (c *Client) subscribePrivateChannels(channels []string, record bool) error {

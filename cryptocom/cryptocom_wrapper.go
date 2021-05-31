@@ -4,49 +4,127 @@ import (
 	exchange "github.com/openware/irix"
 	"github.com/openware/irix/config"
 	"github.com/openware/irix/portfolio/withdraw"
+	"github.com/openware/irix/protocol"
 	"github.com/openware/irix/stream"
 	"github.com/openware/irix/ticker"
 	"github.com/openware/pkg/account"
 	"github.com/openware/pkg/asset"
+	"github.com/openware/pkg/common"
 	"github.com/openware/pkg/currency"
 	"github.com/openware/pkg/kline"
+	"github.com/openware/pkg/log"
 	"github.com/openware/pkg/order"
 	"github.com/openware/pkg/orderbook"
+	"github.com/openware/pkg/request"
 	"github.com/openware/pkg/trade"
+	"math/rand"
 	"sync"
 	"time"
 )
 
 func (c *Client) Setup(exch *config.ExchangeConfig) error {
-	panic("implement me")
+	c.SetDefaults()
+	return nil
 }
 
 func (c *Client) Start(wg *sync.WaitGroup) {
-	panic("implement me")
+	c.Connect()
 }
 
 func (c *Client) SetDefaults() {
-	panic("implement me")
+	c.Name = exchangeName
+	c.Enabled = true
+	c.Verbose = true
+	c.API.CredentialsValidator.RequiresKey = true
+	c.API.CredentialsValidator.RequiresClientID = true
+
+	requestFmt := &currency.PairFormat{Uppercase: true}
+	configFmt := &currency.PairFormat{Uppercase: true, Delimiter: currency.DashDelimiter}
+	err := c.SetGlobalPairsManager(requestFmt, configFmt, asset.Spot)
+	if err != nil {
+		log.Errorln(log.ExchangeSys, err)
+	}
+
+	c.Features = exchange.Features{
+		Supports: exchange.FeaturesSupported{
+			REST:      true,
+			Websocket: true,
+			RESTCapabilities: protocol.Features{
+				TickerFetching:    true,
+				TradeFetching:     true,
+				OrderbookFetching: true,
+				AutoPairUpdates:   true,
+				AccountInfo:       true,
+				GetOrders:         true,
+				CancelOrders:      true,
+				CancelOrder:       true,
+				SubmitOrder:       true,
+				SubmitOrders:      true,
+				UserTradeHistory:  true,
+				TradeFee:          true,
+				FiatDepositFee:    true,
+				FiatWithdrawalFee: true,
+			},
+			WebsocketCapabilities: protocol.Features{
+				AccountBalance:         true,
+				GetOrders:              true,
+				CancelOrders:           true,
+				CancelOrder:            true,
+				SubmitOrder:            true,
+				SubmitOrders:           true,
+				UserTradeHistory:       true,
+				TickerFetching:         true,
+				TradeFetching:          true,
+				OrderbookFetching:      true,
+				AccountInfo:            true,
+				Subscribe:              true,
+				Unsubscribe:            true,
+				AuthenticatedEndpoints: true,
+				MessageCorrelation:     true,
+			},
+			WithdrawPermissions: exchange.WithdrawCryptoViaWebsiteOnly |
+				exchange.WithdrawFiatViaWebsiteOnly,
+		},
+		Enabled: exchange.FeaturesEnabled{
+			AutoPairUpdates: true,
+		},
+	}
+
+	c.Requester = request.New(c.Name,
+		common.NewHTTPClientWithTimeout(exchange.DefaultHTTPTimeout))
+	c.rest.(*httpClient).client = c.Requester.HTTPClient
+	c.Websocket = stream.New()
+	//c.publicConn.Transport = c.Websocket.AuthConn
+	c.WebsocketResponseMaxLimit = exchange.DefaultWebsocketResponseMaxLimit
+	c.WebsocketResponseCheckTimeout = exchange.DefaultWebsocketResponseCheckTimeout
+	c.WebsocketOrderbookBufferLimit = exchange.DefaultWebsocketOrderbookBufferLimit
+	rand.Seed(time.Now().UnixNano())
 }
 
 func (c *Client) GetName() string {
-	panic("implement me")
+	return exchangeName
 }
 
 func (c *Client) IsEnabled() bool {
-	panic("implement me")
+	return c.Enabled
 }
 
 func (c *Client) SetEnabled(b bool) {
-	panic("implement me")
+	c.Enabled = b
 }
 
 func (c *Client) ValidateCredentials(a asset.Item) error {
-	panic("implement me")
+	_, err := c.RestGetAccountSummary(a.String())
+	return err
 }
 
 func (c *Client) FetchTicker(p currency.Pair, a asset.Item) (*ticker.Price, error) {
-	panic("implement me")
+	if c.IsWebsocketEnabled() {
+		c.Websocket.Conn.SendMessageReturnResponse(c.getTicker(p.String()))
+	} else {
+		res, err := c.RestGetTicker(p.String())
+	}
+
 }
 
 func (c *Client) UpdateTicker(p currency.Pair, a asset.Item) (*ticker.Price, error) {
@@ -213,14 +291,6 @@ func (c *Client) GetDefaultConfig() (*config.ExchangeConfig, error) {
 	panic("implement me")
 }
 
-func (c *Client) GetBase() *exchange.Base {
-	panic("implement me")
-}
-
-func (c *Client) SupportsAsset(assetType asset.Item) bool {
-	panic("implement me")
-}
-
 func (c *Client) GetHistoricCandles(p currency.Pair, a asset.Item, timeStart, timeEnd time.Time, interval kline.Interval) (kline.Item, error) {
 	panic("implement me")
 }
@@ -229,54 +299,6 @@ func (c *Client) GetHistoricCandlesExtended(p currency.Pair, a asset.Item, timeS
 	panic("implement me")
 }
 
-func (c *Client) DisableRateLimiter() error {
-	panic("implement me")
-}
-
-func (c *Client) EnableRateLimiter() error {
-	panic("implement me")
-}
-
-func (c *Client) GetWebsocket() (*stream.Websocket, error) {
-	panic("implement me")
-}
-
-func (c *Client) IsWebsocketEnabled() bool {
-	panic("implement me")
-}
-
-func (c *Client) SupportsWebsocket() bool {
-	panic("implement me")
-}
-
-func (c *Client) SubscribeToWebsocketChannels(channels []stream.ChannelSubscription) error {
-	panic("implement me")
-}
-
-func (c *Client) UnsubscribeToWebsocketChannels(channels []stream.ChannelSubscription) error {
-	panic("implement me")
-}
-
-func (c *Client) IsAssetWebsocketSupported(aType asset.Item) bool {
-	panic("implement me")
-}
-
-func (c *Client) FlushWebsocketChannels() error {
-	panic("implement me")
-}
-
 func (c *Client) AuthenticateWebsocket() error {
-	panic("implement me")
-}
-
-func (c *Client) GetOrderExecutionLimits(a asset.Item, cp currency.Pair) (*order.Limits, error) {
-	panic("implement me")
-}
-
-func (c *Client) CheckOrderExecutionLimits(a asset.Item, cp currency.Pair, price, amount float64, orderType order.Type) error {
-	panic("implement me")
-}
-
-func (c *Client) UpdateOrderExecutionLimits(a asset.Item) error {
-	panic("implement me")
+	return c.authenticate()
 }

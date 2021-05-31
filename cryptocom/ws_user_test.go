@@ -253,7 +253,8 @@ func TestWsAuthenticate(t *testing.T) {
 	private.
 		On("WriteMessage", mock.Anything, mock.Anything).
 		Return(nil)
-	cli.authenticate()
+	err := cli.authenticate()
+	assert.NotNil(t, err)
 	var pr Request
 	private.AssertExpectations(t)
 	private.AssertNumberOfCalls(t, "WriteMessage", 1)
